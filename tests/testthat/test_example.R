@@ -18,3 +18,7 @@ test_that("str_length of missing is missing", {
   expect_equal(str_length(c(NA, 1)), c(NA, 1))
   expect_equal(str_length("NA"), 2)
 })
+
+test_that('test_function', {
+    expect_equal(test_function(5), 5)
+})

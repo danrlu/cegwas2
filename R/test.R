@@ -1,6 +1,12 @@
+#' test_function
+#'
+#' \code{test_function}
+#'
+#'
+#' @param n
+#' @return n
+#' @export
 
-
-
-great <- function(n = 1) {
-  return(2)
+test_function <- function(n = 1) {
+  return(n)
 }
