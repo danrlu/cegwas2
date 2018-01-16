@@ -11,8 +11,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
-    tidyverse,
-    ggplot2
+    tidyverse
 Suggests: 
     testthat,
     covr
