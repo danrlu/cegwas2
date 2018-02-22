@@ -6,6 +6,7 @@ cache: packages
 
 r_packages:
   - covr
+  - jimhester/lintr
 
 after_success:
   - Rscript -e "covr::codecov()"
