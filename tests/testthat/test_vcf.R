@@ -32,3 +32,35 @@ test_that("Impact filtering for low and high", {
     )
 })
 
+test_that("Query gene ID", {
+    expect_true(
+        all((query_vcf("WBGene00014450"))$gene_id == "WBGene00014450")
+    )
+})
+
+test_that("Query locus ID", {
+    expect_true(
+        all((query_vcf("pot-2"))$gene_name == "pot-2")
+    )
+})
+
+test_that("Query chromosome", {
+    expect_true(
+        nrow(query_vcf("MtDNA")) > 10000
+    )
+})
+
+test_that("Query specific sample", {
+    expect_true(
+        all(unique((query_vcf("V:1-10000", samples = "CB4856"))$SAMPLE) == "CB4856")
+    )
+})
+
+test_that("Fetch info column", {
+    expect_true(
+        all(
+            c("AN", "MQ0F") %in% names(query_vcf("I:1-10000", info = c("AN", "MQ0F")))
+            )
+    )
+})
+

@@ -226,7 +226,6 @@ query_vcf <- function(...,
                          impact_grep,
                          ">",
                          output_file)
-        print(command)
         if (!is.na(region)) {
             message(glue::glue("Query: {query}"))
             system(command)

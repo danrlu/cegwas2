@@ -10,13 +10,13 @@ query_vcf(..., info = c(), format = c("TGT"), impact = c("MODERATE",
 \arguments{
 \item{...}{Gene names, regions, or wormbase identifiers to query.}
 
-\item{info}{Info columns to output. If an \code{ANN} (annotation) column is available it is automatically fetched. [\strong{Default} c()]}
+\item{info}{Info columns to output. If an \code{ANN} (annotation) column is available it is automatically fetched. [\strong{Default} \code{c()}]}
 
 \item{format}{Format columns to output. A \code{"GT"} or \code{"TGT"} column must be specified to retrieve genotypes. \itemize{
     \item \code{GT} uses a numeric represetnation (0=REF, 1=ALT) and outputs g1, g2, and genotype (0=REF homozygous, 1=HET, 2=ALT homozygous).
     \item \code{TGT} uses the base representation (ATGC) and outputs two columns: a1, a2.
 }
-[\strong{Default} c("TGT")]}
+[\strong{Default} \code{c("TGT")}]}
 
 \item{impact}{A vector of impact levels to filter on (LOW, MODERATE, HIGH, MODIFIER). "ALL" can be used to return ALL variants. [\strong{Default} \code{c('MODERATE', 'HIGH')}]}
 
@@ -31,5 +31,5 @@ Dataframe with variant data
 \code{query_vcf} enables you to query variants within a VCF
 }
 \examples{
-snpeff("pot-2","II:1-10000","WBGene00010785")
+query_vcf("pot-2","II:1-10000","WBGene00010785")
 }

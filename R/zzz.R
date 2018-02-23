@@ -16,10 +16,7 @@
 #' @name cegwas2
 NULL
 
-
 .onLoad <- function(libname, pkgname) {
     op <- options()
     invisible()
 }
-
-
