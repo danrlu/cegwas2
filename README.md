@@ -25,4 +25,24 @@ testthat::auto_test_package()
 
 ### Linting
 
-Use [lintr](https://github.com/jimhester/lintr) to format/clean code.
+Code linting is performed using [lintr](https://github.com/jimhester/lintr). 
+
+Linting locally
+
+```
+lintr::lint_package()
+```
+
+In some cases, you may need to exclude a code chunk from linting.
+This should be rare, but you can do it with the following:
+
+```
+# Begin Exclude Linting"
+
+code_I_want_to_not_lint <- function(x) {
+    x + 1
+}
+
+# End Exclude Linting"
+```
+
