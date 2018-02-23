@@ -2,4 +2,3 @@
 
 export(cendr_dataset_release)
 export(query_vcf)
-export(test_function)

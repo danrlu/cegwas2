@@ -31,3 +31,4 @@ test_that("Impact filtering for low and high", {
              dplyr::arrange(impact))$impact == c("HIGH", "LOW"))
     )
 })
+

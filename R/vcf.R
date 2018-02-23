@@ -1,6 +1,6 @@
 
-# Function for fetching the path the VCF
 get_vcf <- function() {
+    # Function for fetching the path the VCF
     path <- glue::glue("~/Dropbox/Andersenlab/Reagents/WormReagents/_SEQ/WI/WI-{cendr_dataset_release}/vcf/WI.{cendr_dataset_release}.snpeff.vcf.gz")
     if (file.exists(path)) {
         message("Using local VCF")
@@ -11,31 +11,43 @@ get_vcf <- function() {
     path
 }
 
-#' Browse Variant Info
+get_db <- function(renew=FALSE, table="wormbase_gene") {
+    # Function for fetching the variant database
+    file_path <- paste0("~/.cegwas.db")
+    if (file.info(file_path)$size < 128 | is.na(file.info(file_path)$size == 0) | renew) {
+        message(paste0("Downloading Gene Database to ", file_path))
+        url <- "https://storage.googleapis.com/elegansvariation.org/db/_latest.db"
+        download.file(url, file_path)
+    }
+    dplyr::tbl(dplyr::src_sqlite(file_path), "wormbase_gene")
+}
+
+#' Query VCF Data
 #'
-#' \code{snpeff} enables you to query variants called and annotated
-#' by the \href{http://www.andersenlab.org}{Andersen Lab}.
+#' \code{query_vcf} enables you to query variants within a VCF
 #'
 #' @param ... Gene names, regions, or wormbase identifiers to query.
-#' @param severity A vector with variants of given severities (LOW, MODERATE, HIGH, MODIFIER).
-#' Default takes moderate and high. Use "ALL" to return all variants.
-#' @param elements A vector containing gene structural elements (CDS, five_prime_UTR, exon,
-#' intron, three_prime_UTR). Use "ALL" to return all variants.
-#' @param long Return dataset in long or wide format. Default is to return in long format.
-#' @param remote Use remote data. Checks for local data if possible. False by default.
-#' @param use custom vcf file.
-#' @return Outputs a data frame that contains phenotype data, mapping data, and gene information
-#' for highly correlated variants in a particular QTL confidence interval.
-#' @examples snpeff("pot-2","II:1-10000","WBGene00010785")
+#' @param impact A vector of impact levels to filter on (LOW, MODERATE, HIGH, MODIFIER). "ALL" can be used to return ALL variants. [\strong{Default} \code{c('MODERATE', 'HIGH')}]
+#' @param info Info columns to output. If an \code{ANN} (annotation) column is available it is automatically fetched. [\strong{Default} c()]
+#' @param format Format columns to output. A \code{"GT"} or \code{"TGT"} column must be specified to retrieve genotypes. \itemize{
+#'     \item \code{GT} uses a numeric represetnation (0=REF, 1=ALT) and outputs g1, g2, and genotype (0=REF homozygous, 1=HET, 2=ALT homozygous).
+#'     \item \code{TGT} uses the base representation (ATGC) and outputs two columns: a1, a2.
+#' }
+#' [\strong{Default} c("TGT")]
+#' @param vcf Use a custom VCF.
+#' @param long Return dataset in long or wide format. [\strong{Default} \code{TRUE}]
+#' @return Dataframe with variant data
+#'
+#' @examples query_vcf("pot-2","II:1-10000","WBGene00010785")
 #' @export
 
 query_vcf <- function(...,
+                      info = c(),
+                      format = c("TGT"),
                       impact = c("MODERATE", "HIGH"),
-                      info = c("MQ"),
-                      format = c("TGT", "FT"),
-                      long = TRUE,
                       samples="ALL",
-                      vcf = get_vcf()) {
+                      vcf = get_vcf(),
+                      long = TRUE) {
 
     regions <- unlist(list(...))
 
@@ -126,23 +138,18 @@ query_vcf <- function(...,
 
         # Resolve region names
         if (!grepl("(I|II|III|IV|V|X|MtDNA).*", query)) {
-            elegans_gff <- get_db()
+            elegans_gff <- get_db(table="wormbase_m")
             # Pull out regions by element type.
-            region <- dplyr::bind_rows(lapply(elements, function(e) {
-
-                dplyr::collect(dplyr::filter(elegans_gff,
+            region <- dplyr::collect(dplyr::filter(elegans_gff,
                                              locus == query |
                                              gene_id == query |
-                                             sequence_name == query,
-                                             type_of == e) %>%
-                                   dplyr::select(chrom, start, end, gene_id, biotype, type_of, locus, sequence_name) %>%
-                                   dplyr::distinct(.keep_all = TRUE))
-
-                })) %>%
-                dplyr::summarize(chrom = chrom[1], start = min(start), end = max(end)) %>%
-                dplyr::mutate(region_format = paste0(chrom, ":", start, "-", end)) %>%
-                dplyr::select(region_format) %>%
-                dplyr::distinct(.keep_all = TRUE)
+                                             transcript_id == query) %>%
+                                   dplyr::select(chrom, start, end, gene_id, locus,  exon_id, transcript_id, transcript_biotype) %>%
+                                   dplyr::distinct(.keep_all = TRUE)) %>%
+                        dplyr::summarize(chrom = chrom[1], start = min(start), end = max(end)) %>%
+                        dplyr::mutate(region_format = paste0(chrom, ":", start, "-", end)) %>%
+                        dplyr::select(region_format) %>%
+                        dplyr::distinct(.keep_all = TRUE)
 
             region <- paste(region$region_format, collapse = ",")
 

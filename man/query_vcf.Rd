@@ -2,33 +2,33 @@
 % Please edit documentation in R/vcf.R
 \name{query_vcf}
 \alias{query_vcf}
-\title{Browse Variant Info}
+\title{Query VCF Data}
 \usage{
-query_vcf(..., impact = c("MODERATE", "HIGH"), info = c("ANN", "MQ"),
-  format = c("FT", "DP"), long = TRUE, samples = "ALL", vcf = get_vcf())
+query_vcf(..., info = c(), format = c("TGT"), impact = c("MODERATE",
+  "HIGH"), samples = "ALL", vcf = get_vcf(), long = TRUE)
 }
 \arguments{
 \item{...}{Gene names, regions, or wormbase identifiers to query.}
 
-\item{long}{Return dataset in long or wide format. Default is to return in long format.}
+\item{info}{Info columns to output. If an \code{ANN} (annotation) column is available it is automatically fetched. [\strong{Default} c()]}
 
-\item{severity}{A vector with variants of given severities (LOW, MODERATE, HIGH, MODIFIER).
-Default takes moderate and high. Use "ALL" to return all variants.}
+\item{format}{Format columns to output. A \code{"GT"} or \code{"TGT"} column must be specified to retrieve genotypes. \itemize{
+    \item \code{GT} uses a numeric represetnation (0=REF, 1=ALT) and outputs g1, g2, and genotype (0=REF homozygous, 1=HET, 2=ALT homozygous).
+    \item \code{TGT} uses the base representation (ATGC) and outputs two columns: a1, a2.
+}
+[\strong{Default} c("TGT")]}
 
-\item{elements}{A vector containing gene structural elements (CDS, five_prime_UTR, exon,
-intron, three_prime_UTR). Use "ALL" to return all variants.}
+\item{impact}{A vector of impact levels to filter on (LOW, MODERATE, HIGH, MODIFIER). "ALL" can be used to return ALL variants. [\strong{Default} \code{c('MODERATE', 'HIGH')}]}
 
-\item{remote}{Use remote data. Checks for local data if possible. False by default.}
+\item{vcf}{Use a custom VCF.}
 
-\item{use}{custom vcf file.}
+\item{long}{Return dataset in long or wide format. [\strong{Default} \code{TRUE}]}
 }
 \value{
-Outputs a data frame that contains phenotype data, mapping data, and gene information
-for highly correlated variants in a particular QTL confidence interval.
+Dataframe with variant data
 }
 \description{
-\code{snpeff} enables you to query variants called and annotated
-by the \href{http://www.andersenlab.org}{Andersen Lab}.
+\code{query_vcf} enables you to query variants within a VCF
 }
 \examples{
 snpeff("pot-2","II:1-10000","WBGene00010785")
