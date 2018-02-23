@@ -12,13 +12,14 @@ test_that("Show info is null", {
 
 test_that("Test that a genotype matches what we expect", {
     expect_equal(
-        nrow(query_vcf("I:1-10000","II:1-100000") %>%
-        dplyr::filter(SAMPLE == "JU311",
-                      CHROM == "I",
-                      POS == 811,
-                      a1 == "G",
-                      a2 == "G")),
-        1)
+        nrow(query_vcf("I:1-10000",
+                       "II:1-100000",
+                       format = c("TGT", "GT"),
+                       samples="CB4856") %>%
+                 dplyr::filter(CHROM == "II",
+                               genotype == 2,
+                               POS == 96264))
+        , 1)
 })
 
 test_that("Impact filtering for low and high", {

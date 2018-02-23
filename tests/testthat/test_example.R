@@ -22,3 +22,5 @@ test_that("str_length of missing is missing", {
 test_that("test_function", {
     expect_equal(test_function(5), 5)
 })
+
+

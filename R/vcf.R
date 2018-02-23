@@ -216,7 +216,7 @@ query_vcf <- function(...,
             result <- try(dplyr::tbl_df(data.table::fread(output_file,
                                                           col.names = c(base_header,
                                                                         info,
-                                                                        sample_names),
+                                                                        samples),
                                                           sep = "\t",
                                                           na.strings = c("", "."))),
                           silent = FALSE)
