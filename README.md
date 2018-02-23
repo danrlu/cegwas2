@@ -14,3 +14,15 @@ devtools::create("cegwas2")
 ### Coverage
 
 ![coverage](https://codecov.io/gh/AndersenLab/cegwas2/commit/111aa38cd0f4a5010ef4334ea29761e83aeac3b6/graphs/tree.svg)
+
+
+### Testing
+
+```r
+testthat::auto_test_package()
+```
+
+
+### Linting
+
+Use [lintr](https://github.com/jimhester/lintr) to format/clean code.
