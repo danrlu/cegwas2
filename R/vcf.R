@@ -19,7 +19,7 @@ get_db <- function(renew=FALSE, table="wormbase_gene") {
         url <- "https://storage.googleapis.com/elegansvariation.org/db/_latest.db"
         download.file(url, file_path)
     }
-    dplyr::tbl(dplyr::src_sqlite(file_path), "wormbase_gene")
+    dplyr::tbl(dplyr::src_sqlite(file_path), table)
 }
 
 #' Query VCF Data
@@ -138,7 +138,7 @@ query_vcf <- function(...,
 
         # Resolve region names
         if (!grepl("(I|II|III|IV|V|X|MtDNA).*", query)) {
-            elegans_gff <- get_db(table="wormbase_m")
+            elegans_gff <- get_db(table="wormbase_gene")
             # Pull out regions by element type.
             region <- dplyr::collect(dplyr::filter(elegans_gff,
                                              locus == query |
@@ -206,6 +206,14 @@ query_vcf <- function(...,
             samples <- sample_names
         }
 
+        # Grep impacts to speed up intake
+        if (impact != "ALL" & !is.na(impact)) {
+            impact_grep <- paste(purrr::discard(impact, is.na), collapse="|")
+            impact_grep <- glue::glue("| egrep \"({impact_grep})\" - ")
+        } else {
+            impact_grep = ""
+        }
+
         output_file <- tempfile()
         command <- paste("bcftools",
                          "query",
@@ -215,8 +223,10 @@ query_vcf <- function(...,
                          "-f",
                          query_string,
                          vcf,
+                         impact_grep,
                          ">",
                          output_file)
+        print(command)
         if (!is.na(region)) {
             message(glue::glue("Query: {query}"))
             system(command)
