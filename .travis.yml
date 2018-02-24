@@ -18,8 +18,7 @@ before_install:
   - cd bcftools-${bcftools_version}
   - make
   - sudo make install
-  - bcftools
-
+  
 after_success:
   - Rscript -e 'lintr::lint_package()'
   - Rscript -e 'covr::codecov()'
