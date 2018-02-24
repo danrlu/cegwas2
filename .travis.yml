@@ -16,8 +16,7 @@ before_install:
   - tar -xjvf bcftools.tar.bz2
   - cd bcftools-${bcftools_version}
   - make
-  - make install
-  - ln -s /bin/bcftools ${PWD}/bin/bcftools
+  - ln -s /bcftools ../bin/bcftools
 
 after_success:
   - Rscript -e "covr::codecov()"
