@@ -9,6 +9,11 @@ r_packages:
   - lintr
 
 before_install:
+  - ls
+  - ls ..
+  - ls ../../
+  - echo $PATH
+  - ls /usr/local/bin
   - mkdir bin
   - export PATH=${PWD}/bin:${PATH}
   - export bcftools_version=1.3.1
@@ -17,7 +22,7 @@ before_install:
   - cd bcftools-${bcftools_version}
   - make
   - cd ..
-  - ln -s bcftools-${bcftools_version}/bcftools ${PWD}/bin/bcftools
+  - ln -s bcftools-${bcftools_version}/bcftools /usr/local/bin/bcftools
 
 after_success:
   - Rscript -e 'lintr::lint_package()'
