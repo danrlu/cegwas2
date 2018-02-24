@@ -21,7 +21,6 @@ before_install:
   - make
   - sudo make install
   - rm -rf bcftools-${bcftools_version}
-  - bcftools
   - cd ${TRAVID_BUILD_DIR}
 
 script:
