@@ -20,6 +20,8 @@ query_vcf(..., info = c(), format = c("TGT"), impact = c("MODERATE",
 
 \item{impact}{A vector of impact levels to filter on (LOW, MODERATE, HIGH, MODIFIER). "ALL" can be used to return ALL variants. [\strong{Default} \code{c('MODERATE', 'HIGH')}]}
 
+\item{samples}{A set of samples to subset on [\strong{default:} \code{"ALL"}]}
+
 \item{vcf}{Use a custom VCF.}
 
 \item{long}{Return dataset in long or wide format. [\strong{Default} \code{TRUE}]}

@@ -6,7 +6,7 @@ test_vcf_file <- system.file("extdata",
                              mustWork = TRUE)
 
 test_that("Show info is null", {
-    expect_true(is.null(query_vcf()))
+    expect_null(query_vcf())
 })
 
 

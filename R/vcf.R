@@ -108,7 +108,8 @@ query_vcf <- function(...,
         cat("\n")
         cat(crayon::bold("Format"), "\n")
         utils::write.table(dplyr::tbl_df(format_set[,2:4]) %>% dplyr::filter(stats::complete.cases(.)), sep = "\t", row.names=F, quote = F)
-        return(cat("\n"))
+        cat("\n")
+        return(invisible(NULL))
     }
 
 

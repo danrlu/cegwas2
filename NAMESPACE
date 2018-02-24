@@ -2,3 +2,4 @@
 
 export(cendr_dataset_release)
 export(query_vcf)
+importFrom(dplyr,"%>%")
