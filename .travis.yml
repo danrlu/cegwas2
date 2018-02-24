@@ -17,7 +17,7 @@ before_install:
   - cd bcftools-${bcftools_version}
   - make
   - chmod +x bcftools-${bcftools_version}/bcftools
-  - export PATH="${PATH}:bcftools-${bcftools_version}"
+  - export PATH="${PATH}:bcftools-${bcftools_version}/bcftools"
   - bcftools
 after_success:
   - Rscript -e 'lintr::lint_package()'
