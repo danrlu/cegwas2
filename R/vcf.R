@@ -86,8 +86,8 @@ query_vcf <- function(...,
     # Pull out info columns
     info_set <- stringr::str_match(vcf_header, '##INFO=<ID=([^,>]+).*Type=([^,>]+).*Description=\"([^,>]+)\"')
     colnames(info_set) <- c("g", "ID", "Type", "Description")
-    info_columns = purrr::discard(info_set[,2], is.na)
-    info_column_types <- purrr::discard(info_set[,3], is.na)
+    info_columns <- purrr::discard(info_set[, 2], is.na)
+    info_column_types <- purrr::discard(info_set[, 3], is.na)
 
     # Add ANN to info if present but not specified.
     if ("ANN" %in% info_columns) {
@@ -97,39 +97,39 @@ query_vcf <- function(...,
     # Pull out format columns
     format_set <- stringr::str_match(vcf_header, '##FORMAT=<ID=([^,>]+).*Type=([^,>]+).*Description=\"([^,>]+)\"')
     colnames(format_set) <- c("g", "ID", "Type", "Description")
-    format_columns = c(purrr::discard(format_set[,2], is.na), "TGT")
-    format_column_types <- c(purrr::discard(format_set[,3], is.na), "TGT")
+    format_columns <- c(purrr::discard(format_set[, 2], is.na), "TGT")
+    format_column_types <- c(purrr::discard(format_set[, 3], is.na), "TGT")
 
     if (is.null(regions)) {
         cat(crayon::bold("\nVCF:"), vcf, "\n")
         cat(crayon::bold("VCF Samples:"), length(sample_names), "\n\n")
         cat(crayon::bold("Info\n"))
-        utils::write.table(dplyr::tbl_df(info_set[,2:4]) %>% dplyr::filter(stats::complete.cases(.)), sep = "\t", row.names=F, quote = F)
+        utils::write.table(dplyr::tbl_df(info_set[, 2:4]) %>% dplyr::filter(stats::complete.cases(.)), sep = "\t", row.names = F, quote = F)
         cat("\n")
         cat(crayon::bold("Format"), "\n")
-        utils::write.table(dplyr::tbl_df(format_set[,2:4]) %>% dplyr::filter(stats::complete.cases(.)), sep = "\t", row.names=F, quote = F)
+        utils::write.table(dplyr::tbl_df(format_set[, 2:4]) %>% dplyr::filter(stats::complete.cases(.)), sep = "\t", row.names = F, quote = F)
         cat("\n")
         return(invisible(NULL))
     }
 
 
-    assertthat::assert_that(all(samples %in% sample_names) | (samples == "ALL"),
+    assertthat::assert_that(all(samples %in% sample_names) | (samples[[1]] == "ALL"),
                             msg = {
-                                unknown_samples = paste(samples[!samples %in% sample_names], collapse=", ")
+                                unknown_samples <- paste(samples[!samples %in% sample_names], collapse = ", ")
                                 glue::glue("Specified samples are not in the VCF: {unknown_samples}")
                             })
 
 
     assertthat::assert_that(all(info %in% info_columns),
                             msg = {
-                                missing_info_columns <- paste0(info[!(info %in% info_columns)],collapse=",")
+                                missing_info_columns <- paste0(info[!(info %in% info_columns)], collapse = ",")
                                 glue::glue("VCF does not have specified info fields: {missing_info_columns}")
                             })
 
     assertthat::assert_that(all(format %in% format_columns),
                             msg = {
-                                missing_format_columns <- paste0(format[!(format %in% format_columns)],collapse=",")
-                                glue::glue("VCF does not have specified info fields: {missing_format_columns}")
+                                missing_format_columns <- paste0(format[!(format %in% format_columns)], collapse = ",")
+                                glue::glue("VCF does not have specified format fields: {missing_format_columns}")
                             })
 
 
@@ -142,7 +142,7 @@ query_vcf <- function(...,
 
         # Resolve region names
         if (!grepl("(I|II|III|IV|V|X|MtDNA).*", query)) {
-            elegans_gff <- get_db(table="wormbase_gene")
+            elegans_gff <- get_db(table = "wormbase_gene")
             # Pull out regions by element type.
             region <- dplyr::collect(dplyr::filter(elegans_gff,
                                              locus == query |
@@ -195,8 +195,8 @@ query_vcf <- function(...,
             ann_header <- c()
         }
 
-        info_query = paste0(info, collapse="\\t%")
-        format_query = paste0(format, collapse="!%")
+        info_query <- paste0(info, collapse = "\\t%")
+        format_query <- paste0(format, collapse = "!%")
         # If using long format provide additional information.
         query_string <- glue::glue("'%CHROM\\t%POS\\t%REF\\t%ALT\\t%FILTER\\t%{info_query}[\\t%{format_query}]\\n'")
         if (long == T) {
@@ -204,7 +204,7 @@ query_vcf <- function(...,
         }
 
         if (samples != "ALL") {
-            sample_query <- glue::glue("--samples ", paste(samples, collapse=','))
+            sample_query <- glue::glue("--samples ", paste(samples, collapse = ","))
         } else {
             sample_query <- ""
             samples <- sample_names
@@ -212,10 +212,10 @@ query_vcf <- function(...,
 
         # Grep impacts to speed up intake
         if (impact != "ALL" & !is.na(impact)) {
-            impact_grep <- paste(purrr::discard(impact, is.na), collapse="|")
+            impact_grep <- paste(purrr::discard(impact, is.na), collapse = "|")
             impact_grep <- glue::glue("| egrep \"({impact_grep})\" - ")
         } else {
-            impact_grep = ""
+            impact_grep <- ""
         }
 
         output_file <- tempfile()
@@ -278,8 +278,8 @@ query_vcf <- function(...,
 
                 # Filter impact (only if ANN present)
                 if ("impact" %in% names(tsv)) {
-                    tsv <- tsv[tsv$impact %in% impact,]
-                } else if (impact != "ALL" | !is.na(impact) ) {
+                    tsv <- tsv[tsv$impact %in% impact, ]
+                } else if (impact != "ALL" | !is.na(impact)) {
                     warning("Warning: No ANN column specified; Variants will not be filtered on impact.")
                 }
 
@@ -297,7 +297,7 @@ query_vcf <- function(...,
                                         convert = TRUE,
                                         remove = T) %>%
                                         {
-                                            if ("DP" %in% format) dplyr::mutate(., DP = as.integer(ifelse((DP == ".") | is.na(DP), 0, DP))) else .
+                                            if ("DP" %in% format) dplyr::mutate(., DP = as.integer(ifelse( (DP == ".") | is.na(DP), 0, DP))) else .
                                         } %>%
                                         {
                                             if ("TGT" %in% format)
@@ -320,7 +320,7 @@ query_vcf <- function(...,
                                                                 remove = T) %>%
                                                 dplyr::mutate_at(as.integer, .vars = c("g1", "g2")) %>%
                                                 # Why this weird way? It's faster.
-                                                dplyr::mutate(genotype = as.integer(rowSums(.[,c("g1", "g2")])))
+                                                dplyr::mutate(genotype = as.integer(rowSums(.[, c("g1", "g2")])))
                                             else
                                                 .
                                         }
@@ -343,20 +343,20 @@ query_vcf <- function(...,
                             dplyr::mutate_at(.vars = format_columns[format_column_types == "Flag" & format_columns %in% format],
                                              as.logical)
 
-                        column_order = c("CHROM",
-                                         "POS",
-                                         "REF",
-                                         "ALT",
-                                         "SAMPLE",
-                                         "FILTER",
-                                         "FT",
-                                         "a1",
-                                         "a2",
-                                         "g1",
-                                         "g2",
-                                         "genotype",
-                                         "query",
-                                         "region")
+                        column_order <- c("CHROM",
+                                          "POS",
+                                          "REF",
+                                          "ALT",
+                                          "SAMPLE",
+                                          "FILTER",
+                                          "FT",
+                                          "a1",
+                                          "a2",
+                                          "g1",
+                                          "g2",
+                                          "genotype",
+                                          "query",
+                                          "region")
                         column_order_use <- c(column_order[column_order %in% names(tsv)],
                                               names(tsv)[!names(tsv) %in% column_order])
 

@@ -15,7 +15,7 @@ test_that("Test that a genotype matches what we expect", {
         nrow(query_vcf("I:1-10000",
                        "II:1-100000",
                        format = c("TGT", "GT"),
-                       samples="CB4856") %>%
+                       samples = "CB4856") %>%
                  dplyr::filter(CHROM == "II",
                                genotype == 2,
                                POS == 96264))
@@ -70,18 +70,54 @@ test_that("Fetch INFO and FORMAT columns", {
 })
 
 
+test_that("Use impact = ALL", {
+    expect_true(
+        setequal(
+        unique(
+            query_vcf("I:1-100000",
+                      impact = "ALL")$impact),
+        c(NA, "MODIFIER", "LOW", "MODERATE", "HIGH")
+        )
+    )
+})
+
+test_that("Use impact = ALL", {
+    expect_error(query_vcf("I:1-10000", impact = "ALL"))
+})
+
+#===============#
+# Error queries #
+#===============#
+
 test_that("Invalid INFO column", {
-    expect_error(query_vcf("pot-2", info = c("Not a column")))
+    expect_error(
+        query_vcf("pot-2",
+                  info = c("Not a column")),
+        regexp = "^VCF does not have specified info fields:"
+        )
 })
 
 
 test_that("Invalid FORMAT column", {
-    expect_error(query_vcf("pot-2", format = c("Not a column")))
+    expect_error(
+        query_vcf("pot-2",
+                  format = c("Not a column")),
+                  regexp = "^VCF does not have specified format fields:"
+        )
 })
-
 
 test_that("Invalid IMPACT filter", {
-    expect_error(query_vcf("pot-2", impact = c("Not an impact")), regexpr = "asdfasdfG", all=T)
+    expect_error(
+        query_vcf("pot-2",
+                  impact = c("Not an impact")),
+        regexp = "^Invalid impact")
 })
 
 
+test_that("Invalid sample specified", {
+    expect_error(
+        query_vcf("pot-2",
+                  samples = c("CB4856", "Not a sample")),
+        regexp = "^Specified.*",
+    )
+})
