@@ -5,7 +5,9 @@ test_vcf_file <- system.file("extdata",
                              package = "cegwas2",
                              mustWork = TRUE)
 
-
+test_that("Show info is null", {
+    expect_null(query_vcf())
+})
 
 
 test_that("Test that a genotype matches what we expect", {
