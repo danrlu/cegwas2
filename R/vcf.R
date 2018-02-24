@@ -13,11 +13,12 @@ get_vcf <- function() {
 
 get_db <- function(renew=FALSE, table="wormbase_gene") {
     # Function for fetching the variant database
-    file_path <- paste0("~/.cegwas.db")
+    base::dir.create("~/.cegwas")
+    file_path <- "~/.cegwas/cegwas.db"
     if (file.info(file_path)$size < 128 | is.na(file.info(file_path)$size == 0) | renew) {
         message(paste0("Downloading Gene Database to ", file_path))
         url <- "https://storage.googleapis.com/elegansvariation.org/db/_latest.db"
-        download.file(url, file_path)
+        utils::download.file(url, file_path)
     }
     dplyr::tbl(dplyr::src_sqlite(file_path), table)
 }
@@ -34,11 +35,13 @@ get_db <- function(renew=FALSE, table="wormbase_gene") {
 #'     \item \code{TGT} uses the base representation (ATGC) and outputs two columns: a1, a2.
 #' }
 #' [\strong{Default} \code{c("TGT")}]
+#' @param samples A set of samples to subset on [\strong{default:} \code{"ALL"}]
 #' @param vcf Use a custom VCF.
 #' @param long Return dataset in long or wide format. [\strong{Default} \code{TRUE}]
 #' @return Dataframe with variant data
 #'
 #' @examples query_vcf("pot-2","II:1-10000","WBGene00010785")
+#' @importFrom dplyr %>%
 #' @export
 
 query_vcf <- function(...,
@@ -101,10 +104,10 @@ query_vcf <- function(...,
         cat(crayon::bold("\nVCF:"), vcf, "\n")
         cat(crayon::bold("VCF Samples:"), length(sample_names), "\n\n")
         cat(crayon::bold("Info\n"))
-        write.table(dplyr::tbl_df(info_set[,2:4]) %>% dplyr::filter(complete.cases(.)), sep = "\t", row.names=F, quote = F)
+        utils::write.table(dplyr::tbl_df(info_set[,2:4]) %>% dplyr::filter(stats::complete.cases(.)), sep = "\t", row.names=F, quote = F)
         cat("\n")
         cat(crayon::bold("Format"), "\n")
-        write.table(dplyr::tbl_df(format_set[,2:4]) %>% dplyr::filter(complete.cases(.)), sep = "\t", row.names=F, quote = F)
+        utils::write.table(dplyr::tbl_df(format_set[,2:4]) %>% dplyr::filter(stats::complete.cases(.)), sep = "\t", row.names=F, quote = F)
         return(cat("\n"))
     }
 

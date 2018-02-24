@@ -1,7 +1,10 @@
 # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 
 language: R
-cache: packages
+cache: 
+  packages: true
+  directories:
+    - ~/.cegwas
 sudo: true
 dist: trusty
 
@@ -9,6 +12,7 @@ r_packages:
   - tidyverse
   - covr
   - lintr
+  - data.table
 
 r:
   - release
@@ -21,6 +25,7 @@ before_install:
   - make
   - sudo make install
   - cd ${TRAVIS_BUILD_DIR}
+  - rm bcftools.tar.bz2
   - rm -rf bcftools-${bcftools_version}
 
 after_success:
