@@ -20,7 +20,12 @@ before_install:
   - cd bcftools-${bcftools_version}
   - make
   - sudo make install
-  - echo "bcftools installed"
+  - rm -rf bcftools-${bcftools_version}
+  - bcftools
+  - cd ${TRAVID_BUILD_DIR}
+
+script:
+  - R CMD build .
 
 after_success:
   - Rscript -e 'lintr::lint_package()'
