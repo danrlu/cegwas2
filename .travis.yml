@@ -9,13 +9,15 @@ cache: packages
 #  - lintr
 
 before_install:
+  - mkdir bin
+  - explor PATH=${PWD}/bin:${PATH}
   - export bcftools_version=1.3.1
   - wget "https://github.com/samtools/bcftools/releases/download/${bcftools_version}/bcftools-${bcftools_version}.tar.bz2" -O bcftools.tar.bz2
   - tar -xjvf bcftools.tar.bz2
   - cd bcftools-${bcftools_version}
   - make
-  - make prefix=/usr/local/bin install
-  - ln -s /usr/local/bin/bin/bcftools /usr/bin/bcftools
+  - make install
+  - ln -s /bin/bcftools ${PWD}/bin/bcftools
 
 after_success:
   - Rscript -e "covr::codecov()"
