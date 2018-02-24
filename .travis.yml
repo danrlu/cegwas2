@@ -20,6 +20,7 @@ before_install:
   - cd bcftools-${bcftools_version}
   - make
   - sudo make install
+  - cd ${TRAVIS_BUILD_DIR}
   - rm -rf bcftools-${bcftools_version}
 
 after_success:
