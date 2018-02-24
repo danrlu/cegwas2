@@ -20,6 +20,7 @@ before_install:
   - cd bcftools-${bcftools_version}
   - make
   - sudo make install
+  - echo "bcftools installed"
 
 after_success:
   - Rscript -e 'lintr::lint_package()'
