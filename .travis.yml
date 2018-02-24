@@ -12,6 +12,7 @@ r_packages:
   - tidyverse
   - covr
   - lintr
+  - RSQLite
   - data.table
 
 r:
