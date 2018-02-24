@@ -18,7 +18,7 @@ devtools::create("cegwas2")
 
 ### Testing
 
-```r
+```
 testthat::auto_test_package()
 ```
 
