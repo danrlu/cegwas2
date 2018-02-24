@@ -81,10 +81,6 @@ test_that("Use impact = ALL", {
     )
 })
 
-test_that("Use impact = ALL", {
-    expect_error(query_vcf("I:1-10000", impact = "ALL"))
-})
-
 #===============#
 # Error queries #
 #===============#

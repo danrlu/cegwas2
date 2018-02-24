@@ -70,7 +70,9 @@ query_vcf <- function(...,
     }
 
     # Ensure that bcftools is available:
-    bcftools_version <- as.double(stringr::str_extract(readLines(pipe("bcftools --version"))[1], "[0-9]+\\.[0-9]+"))
+    conn <- pipe("bcftools --version")
+    bcftools_version <- as.double(stringr::str_extract(readLines(conn)[1], "[0-9]+\\.[0-9]+"))
+    close(conn)
     assertthat::assert_that(!(is.na(bcftools_version) | bcftools_version < 1.2),
                             msg = "bcftools 1.2+ required for this query_vcf")
 
@@ -232,7 +234,7 @@ query_vcf <- function(...,
                          output_file)
         if (!is.na(region)) {
             message(glue::glue("Query: {query}"))
-            system(command)
+            conn <- system(command)
             result <- try(dplyr::tbl_df(data.table::fread(output_file,
                                                           col.names = c(base_header,
                                                                         info,
