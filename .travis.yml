@@ -30,7 +30,7 @@ before_install:
   - rm -rf bcftools-${bcftools_version}
 
 after_success:
-  - Rscript -e 'lintr::lint_package()'
+  #- Rscript -e 'lintr::lint_package()'
   - Rscript -e 'covr::codecov()'
 
 notifications:
