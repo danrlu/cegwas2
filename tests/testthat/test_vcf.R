@@ -32,11 +32,13 @@ test_that("Impact filtering for low and high", {
     )
 })
 
+
 test_that("Query gene ID", {
     expect_true(
         all((query_vcf("WBGene00014450"))$gene_id == "WBGene00014450")
     )
 })
+
 
 test_that("Query locus ID", {
     expect_true(
@@ -44,11 +46,13 @@ test_that("Query locus ID", {
     )
 })
 
+
 test_that("Query chromosome", {
     expect_true(
         nrow(query_vcf("MtDNA")) > 10000
     )
 })
+
 
 test_that("Query specific sample", {
     expect_true(
@@ -56,11 +60,28 @@ test_that("Query specific sample", {
     )
 })
 
-test_that("Fetch info column", {
+
+test_that("Fetch INFO and FORMAT columns", {
     expect_true(
         all(
-            c("AN", "MQ0F") %in% names(query_vcf("I:1-10000", info = c("AN", "MQ0F")))
-            )
+            c("DP", "AD") %in% names(query_vcf("I:1-10000", info = c("DP"), format = c("AD")))
+        )
     )
 })
+
+
+test_that("Invalid INFO column", {
+    expect_error(query_vcf("pot-2", info = c("Not a column")))
+})
+
+
+test_that("Invalid FORMAT column", {
+    expect_error(query_vcf("pot-2", format = c("Not a column")))
+})
+
+
+test_that("Invalid IMPACT filter", {
+    expect_error(query_vcf("pot-2", impact = c("Not an impact")), regexpr = "asdfasdfG", all=T)
+})
+
 

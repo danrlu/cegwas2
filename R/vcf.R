@@ -6,7 +6,7 @@ get_vcf <- function() {
         message("Using local VCF")
     } else {
         message("Using remote VCF")
-        path <- glue::glue("http://storage.googleapis.com/elegansvariation.org/releases/{cendr_dataset_release}/variation/WI.{cendr_dataset_release}.snpeff.vcf.gz")
+        path <- glue::glue("http://storage.googleapis.com/elegansvariation.org/releases/{cendr_dataset_release}/variation/WI.{cendr_dataset_release}.soft-filtered.vcf.gz")
     }
     path
 }
