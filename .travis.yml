@@ -5,11 +5,13 @@ cache: packages
 sudo: true
 dist: trusty
 
-
 r_packages:
   - tidyverse
   - covr
   - lintr
+
+r:
+  - release
 
 before_install:
   - export bcftools_version=1.3.1
@@ -18,11 +20,10 @@ before_install:
   - cd bcftools-${bcftools_version}
   - make
   - sudo make install
-  
+
 after_success:
   - Rscript -e 'lintr::lint_package()'
   - Rscript -e 'covr::codecov()'
-
 
 notifications:
   email: true
