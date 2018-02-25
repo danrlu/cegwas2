@@ -11,33 +11,22 @@ get_vcf <- function() {
     path
 }
 
-get_db <- function(renew=FALSE, table="wormbase_gene") {
-    # Function for fetching the variant database
-    base::dir.create("~/.cegwas") # nolint
-    file_path <- "~/.cegwas/cegwas.db" # nolint
-    if (file.info(file_path)$size < 128 | is.na(file.info(file_path)$size == 0) | renew) {
-        message(paste0("Downloading Gene Database to ", file_path))
-        url <- "https://storage.googleapis.com/elegansvariation.org/db/_latest.db"
-        utils::download.file(url, file_path)
-    }
-    dplyr::tbl(dplyr::src_sqlite(file_path), table)
-}
 
 #' Query VCF Data
 #'
 #' \code{query_vcf} enables you to query variants within a VCF
 #'
 #' @param ... Gene names, regions, or wormbase identifiers to query.
-#' @param impact A vector of impact levels to filter on (LOW, MODERATE, HIGH, MODIFIER). "ALL" can be used to return ALL variants. [\strong{Default} \code{c('MODERATE', 'HIGH')}]
 #' @param info Info columns to output. If an \code{ANN} (annotation) column is available it is automatically fetched. [\strong{Default} \code{c()}]
 #' @param format Format columns to output. A \code{"GT"} or \code{"TGT"} column must be specified to retrieve genotypes. \itemize{
+#' @param impact A vector of impact levels to filter on (LOW, MODERATE, HIGH, MODIFIER). "ALL" can be used to return ALL variants. [\strong{Default} \code{c('MODERATE', 'HIGH')}]
 #'     \item \code{GT} uses a numeric represetnation (0=REF, 1=ALT) and outputs g1, g2, and genotype (0=REF homozygous, 1=HET, 2=ALT homozygous).
 #'     \item \code{TGT} uses the base representation (ATGC) and outputs two columns: a1, a2.
 #' }
 #' [\strong{Default} \code{c("TGT")}]
 #' @param samples A set of samples to subset on [\strong{default:} \code{"ALL"}]
-#' @param vcf Use a custom VCF.
 #' @param long Return dataset in long or wide format. [\strong{Default} \code{TRUE}]
+#' @param vcf Use a custom VCF.
 #' @return Dataframe with variant data
 #'
 #' @examples query_vcf("pot-2","II:1-10000","WBGene00010785")
@@ -49,8 +38,8 @@ query_vcf <- function(...,
                       format = c("TGT"),
                       impact = c("MODERATE", "HIGH"),
                       samples="ALL",
-                      vcf = get_vcf(),
-                      long = TRUE) {
+                      long = TRUE,
+                      vcf = get_vcf()) {
 
     regions <- unlist(list(...))
 

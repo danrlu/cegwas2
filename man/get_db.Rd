@@ -7,9 +7,9 @@
 get_db(table = "wormbase_gene", renew = FALSE)
 }
 \arguments{
-\item{table}{The table to request. [\strong{Default:} wormbase_gene]}
+\item{table}{The table to request. [\strong{Default:} \code{"wormbase_gene"}]}
 
-\item{renew}{Force download of the latest database. Then return the requested table.}
+\item{renew}{Force download of the latest database. Then return the requested table. [\strong{Default:} \code{FALSE}]}
 }
 \value{
 Dataframe with the requested table.
