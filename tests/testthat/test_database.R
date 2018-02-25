@@ -24,3 +24,15 @@ test_that("Test strain table", {
             )
         )
 })
+
+
+test_that("Test homolog table", {
+    expect_true(
+        any(
+            get_db("homologs") %>%
+                dplyr::filter(gene_name == 'acdh-7') %>%
+                dplyr::collect() %>%
+                dplyr::pull(homolog_gene) == "ACADM"
+        )
+    )
+})
