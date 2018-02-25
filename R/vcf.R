@@ -1,20 +1,20 @@
 
 get_vcf <- function() {
     # Function for fetching the path the VCF
-    path <- glue::glue("~/Dropbox/Andersenlab/Reagents/WormReagents/_SEQ/WI/WI-{cendr_dataset_release}/vcf/WI.{cendr_dataset_release}.snpeff.vcf.gz")
+    path <- glue::glue("~/Dropbox/Andersenlab/Reagents/WormReagents/_SEQ/WI/WI-{cendr_dataset_release}/vcf/WI.{cendr_dataset_release}.snpeff.vcf.gz") # nolint
     if (file.exists(path)) {
         message("Using local VCF")
     } else {
         message("Using remote VCF")
-        path <- glue::glue("http://storage.googleapis.com/elegansvariation.org/releases/{cendr_dataset_release}/variation/WI.{cendr_dataset_release}.soft-filtered.vcf.gz")
+        path <- glue::glue("http://storage.googleapis.com/elegansvariation.org/releases/{cendr_dataset_release}/variation/WI.{cendr_dataset_release}.soft-filtered.vcf.gz") # nolint
     }
     path
 }
 
 get_db <- function(renew=FALSE, table="wormbase_gene") {
     # Function for fetching the variant database
-    base::dir.create("~/.cegwas")
-    file_path <- "~/.cegwas/cegwas.db"
+    base::dir.create("~/.cegwas") # nolint
+    file_path <- "~/.cegwas/cegwas.db" # nolint
     if (file.info(file_path)$size < 128 | is.na(file.info(file_path)$size == 0) | renew) {
         message(paste0("Downloading Gene Database to ", file_path))
         url <- "https://storage.googleapis.com/elegansvariation.org/db/_latest.db"
@@ -86,7 +86,7 @@ query_vcf <- function(...,
     vcf_header <- readr::read_lines(suppressWarnings(pipe(vcf_header_query)))
 
     # Pull out info columns
-    info_set <- stringr::str_match(vcf_header, '##INFO=<ID=([^,>]+).*Type=([^,>]+).*Description=\"([^,>]+)\"')
+    info_set <- stringr::str_match(vcf_header, '##INFO=<ID=([^,>]+).*Type=([^,>]+).*Description=\"([^,>]+)\"') # nolint
     colnames(info_set) <- c("g", "ID", "Type", "Description")
     info_columns <- purrr::discard(info_set[, 2], is.na)
     info_column_types <- purrr::discard(info_set[, 3], is.na)
@@ -97,21 +97,35 @@ query_vcf <- function(...,
     }
 
     # Pull out format columns
-    format_set <- stringr::str_match(vcf_header, '##FORMAT=<ID=([^,>]+).*Type=([^,>]+).*Description=\"([^,>]+)\"')
+    format_set <- stringr::str_match(vcf_header, '##FORMAT=<ID=([^,>]+).*Type=([^,>]+).*Description=\"([^,>]+)\"') # nolint
     colnames(format_set) <- c("g", "ID", "Type", "Description")
     format_columns <- c(purrr::discard(format_set[, 2], is.na), "TGT")
     format_column_types <- c(purrr::discard(format_set[, 3], is.na), "TGT")
 
     if (is.null(regions)) {
+        # Begin Exclude Linting
         cat(crayon::bold("\nVCF:"), vcf, "\n")
         cat(crayon::bold("VCF Samples:"), length(sample_names), "\n\n")
         cat(crayon::bold("Info\n"))
-        utils::write.table(dplyr::tbl_df(info_set[, 2:4]) %>% dplyr::filter(stats::complete.cases(.)), sep = "\t", row.names = F, quote = F)
+        utils::write.table(
+            dplyr::tbl_df(
+                info_set[, 2:4]) %>%
+                    dplyr::filter(stats::complete.cases(.)),
+            sep = "\t",
+            row.names = F,
+            quote = F)
         cat("\n")
         cat(crayon::bold("Format"), "\n")
-        utils::write.table(dplyr::tbl_df(format_set[, 2:4]) %>% dplyr::filter(stats::complete.cases(.)), sep = "\t", row.names = F, quote = F)
+        utils::write.table(
+            dplyr::tbl_df(
+                format_set[, 2:4]) %>%
+                    dplyr::filter(stats::complete.cases(.)),
+            sep = "\t",
+            row.names = F,
+            quote = F)
         cat("\n")
         return(invisible(NULL))
+        # End Exclude Linting
     }
 
 
