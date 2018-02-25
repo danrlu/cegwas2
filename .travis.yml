@@ -28,6 +28,7 @@ before_install:
   - cd ${TRAVIS_BUILD_DIR}
   - rm bcftools.tar.bz2
   - rm -rf bcftools-${bcftools_version}
+  - export LINTR_COMMENT_BOT=false;
 
 after_success:
   - Rscript -e 'lintr::lint_package()'

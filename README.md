@@ -13,7 +13,7 @@ devtools::create("cegwas2")
 
 ### Coverage
 
-![coverage](https://codecov.io/gh/AndersenLab/cegwas2/commit/111aa38cd0f4a5010ef4334ea29761e83aeac3b6/graphs/tree.svg)
+![coverage](https://codecov.io/gh/AndersenLab/cegwas2/graphs/tree.svg)
 
 
 ### Testing
