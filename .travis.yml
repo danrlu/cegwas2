@@ -32,7 +32,7 @@ before_install:
 
 after_success:
   - Rscript -e 'lintr::lint_package()'
-  - Rscript -e 'covr::codecov()'
+  - Rscript -e 'covr::coveralls()'
 
 warnings_are_errors: false
 
