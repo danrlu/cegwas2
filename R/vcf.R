@@ -387,3 +387,9 @@ query_vcf <- function(...,
     results <- results %>% dplyr::filter(!is.na(CHROM))
     results
 }
+
+
+new_function <- function(x) {
+    x + 1
+}
+
