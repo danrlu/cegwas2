@@ -387,3 +387,51 @@ query_vcf <- function(...,
     results <- results %>% dplyr::filter(!is.na(CHROM))
     results
 }
+
+
+#' VCF To Matrix
+#'
+#' \code{vcf_to_matrix} converts variant calls from a bcf, vcf.gz or vcf file into an R dataframe.
+#' Uses only biallelic variants. Heterozygous calls are ignored. Requires bcftools.
+#'
+#' @param vcf a bcf, vcf, or vcf.gz file
+#' @param allele_freq allele frequency to filter on. Default is 0
+#' @param tag_snips A set of variants to filter on. By default, all variants are taken.
+#' @param region A region to subset on.
+#' @return Matrix of genotype calls
+#' @seealso \link{generate_kinship} \link{generate_mapping}
+#' @export
+
+vcf_to_matrix <- function(vcf, allele_freq = 0.0, tag_snps = NA, region = NA) {
+  gt_file <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = "")
+  if (!is.na(tag_snps)) {
+    tag_snps <- glue::glue("-T {tag_snps}")
+  } else {
+    tag_snps <- ""
+  }
+  if (!is.na(region)) {
+    region <- glue::glue("--regions {region}")
+  } else {
+    region <- ""
+  }
+  command <- glue::glue("bcftools view {tag_snps} {region} -m2 -M2 --min-af {allele_freq} {vcf} | ",
+                        "bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' | ",
+                        "sed 's/[[# 0-9]*\\]//g' | ",
+                        "sed 's/:GT//g' | ",
+                        "sed 's/0|0/-1/g'   | ",
+                        "sed 's/1|1/1/g'   | ",
+                        "sed 's/0|1/NA/g'  | ",
+                        "sed 's/1|0/NA/g'  | ",
+                        "sed 's/.|./NA/g'  | ",
+                        "sed 's/0\\/0/-1/g'  | ",
+                        "sed 's/1\\/1/1/g'  | ",
+                        "sed 's/0\\/1/NA/g' | ",
+                        "sed 's/1\\/0/NA/g' | ",
+                        "sed 's/.\\/./NA/g'  > {gt_file}")
+  cat(command)
+  # Generate simplified representation of genotypes
+  system(command, intern = T)
+  df <- dplyr::tbl_df(data.table::fread(gt_file))
+  
+  df
+}
