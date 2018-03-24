@@ -203,20 +203,7 @@ BAMF_prune <- function( data, remove_outliers = TRUE ){
     }
 }
 
-is_out_tukey <- function(x, k = 2, na.rm = TRUE) {
-    quar <- quantile(x, probs = c(0.25, 0.75), na.rm = na.rm)
-    iqr <- diff(quar)
 
-    ( !(quar[1] - k * iqr <= x) ) & ( !(x <= quar[2] + k * iqr) )
-}
-
-is_out_z <- function(x, thres = 3, na.rm = TRUE) {
-    ( !abs(x - mean(x, na.rm = na.rm)) <= thres * sd(x, na.rm = na.rm) )
-}
-
-is_out_mad <- function(x, thres = 3, na.rm = TRUE) {
-    ( !abs(x - median(x, na.rm = na.rm)) <= thres * mad(x, na.rm = na.rm) )
-}
 
 #' Process phenotypes for mapping
 #'
@@ -235,7 +222,10 @@ is_out_mad <- function(x, thres = 3, na.rm = TRUE) {
 process_phenotypes <- function(df,
                                summarize_replicates = "mean",
                                prune_method = "BAMF",
-                               remove_outliers = TRUE){
+                               remove_outliers = TRUE,
+                               Z_threshold = 2,
+                               MAD_threshold = 2
+                               TUKEY_threshold = 2){
     if ( sum(grepl(colnames(df)[1], "Strain", ignore.case = T)) == 0 ) {
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
                            \nCheck input data format, strain should be the first column.
@@ -287,10 +277,25 @@ process_phenotypes <- function(df,
     #   dplyr::select(-phenotype)%>%
     #   dplyr::select(strain, trait, phenotype = new_pheno)
 
+    is_out_tukey <- function(x, k = TUKEY_threshold, na.rm = TRUE) {
+        quar <- quantile(x, probs = c(0.25, 0.75), na.rm = na.rm)
+        iqr <- diff(quar)
+
+        ( !(quar[1] - k * iqr <= x) ) & ( !(x <= quar[2] + k * iqr) )
+    }
+
+    is_out_z <- function(x, thres = Z_threshold, na.rm = TRUE) {
+        ( !abs(x - mean(x, na.rm = na.rm)) <= thres * sd(x, na.rm = na.rm) )
+    }
+
+    is_out_mad <- function(x, thres = MAD_threshold, na.rm = TRUE) {
+        ( !abs(x - median(x, na.rm = na.rm)) <= thres * mad(x, na.rm = na.rm) )
+    }
+
     # ~ ~ ~ # Perform outlier removal # ~ ~ ~ #
     if ( prune_method == "BAMF" ) {
 
-        df_outliers <- BAMF_prune(df_replicates_summarized, remove_outliers = F)
+        df_outliers <- BAMF_prune(df_replicates_summarized, remove_outliers = remove_outliers)
 
     } else if ( prune_method == "Z" ) {
 
@@ -337,15 +342,3 @@ process_phenotypes <- function(df,
 
     return(processed_phenotypes_output)
 }
-
-process_phenotypes(df = df,
-                   summarize_replicates = "mean",
-                   prune_method = "BAMF",
-                   remove_outliers = TRUE)
-
-pr_df <- process_phenotypes(df = df,
-                            summarize_replicates = "mean",
-                            prune_method = "Z",
-                            remove_outliers = FALSE)
-
-
