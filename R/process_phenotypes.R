@@ -286,31 +286,18 @@ process_phenotypes <- function(df,
     # ~ ~ ~ # Perform outlier removal # ~ ~ ~ #
     if ( prune_method == "BAMF" ) {
 
-        df_outliers <- BAMF_prune(df_replicates_summarized, remove_outliers = remove_outliers)
+        df_outliers <- BAMF_prune(df_replicates_summarized, remove_outliers = FALSE)
 
-    } else if ( prune_method == "Z" ) {
-
-        df_outliers <-  dplyr::ungroup(df_replicates_summarized) %>%
-            dplyr::group_by(trait) %>%
-            dplyr::transmute_if(is.numeric, dplyr::funs( outlier = is_out_z ) ) %>%
-            dplyr::ungroup() %>%
-            dplyr::bind_cols(., dplyr::ungroup(df_replicates_summarized)) %>%
-            dplyr::select(strain, trait, phenotype, outlier)
-
-    } else if ( prune_method == "TUKEY" ) {
+    } else {
 
         df_outliers <-  dplyr::ungroup(df_replicates_summarized) %>%
-            dplyr::group_by(trait) %>%
-            dplyr::transmute_if(is.numeric, dplyr::funs( outlier = is_out_tukey ) ) %>%
-            dplyr::ungroup() %>%
-            dplyr::bind_cols(., dplyr::ungroup(df_replicates_summarized)) %>%
-            dplyr::select(strain, trait, phenotype, outlier)
-
-    } else if ( prune_method == "MAD" ) {
-
-        df_outliers <-  dplyr::ungroup(df_replicates_summarized) %>%
-            dplyr::group_by(trait) %>%
-            dplyr::transmute_if(is.numeric, dplyr::funs( outlier = is_out_mad ) ) %>%
+            dplyr::group_by(trait) %>% {
+                if (prune_method == "MAD") dplyr::transmute_if(., is.numeric, dplyr::funs( outlier = is_out_mad ) )
+                else if (prune_method == "TUKEY") dplyr::transmute_if(., is.numeric, dplyr::funs( outlier = is_out_tukey ) )
+                else if (prune_method == "Z") dplyr::transmute_if(., is.numeric, dplyr::funs( outlier = is_out_z ) )
+                else  message(glue::glue("~ ~ ~ WARNING ~ ~ ~
+                                     \nPlease choose BAMF, MAD, TUKEY, or Z as options for summarizeing replicate data.
+                                         \n~ ~ ~ WARNING ~ ~ ~")) } %>%
             dplyr::ungroup() %>%
             dplyr::bind_cols(., dplyr::ungroup(df_replicates_summarized)) %>%
             dplyr::select(strain, trait, phenotype, outlier)

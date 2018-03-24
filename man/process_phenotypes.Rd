@@ -5,7 +5,8 @@
 \title{Process phenotypes for mapping}
 \usage{
 process_phenotypes(df, summarize_replicates = "mean", prune_method = "BAMF",
-  remove_outliers = TRUE)
+  remove_outliers = TRUE, Z_threshold = 2, MAD_threshold = 2,
+  TUKEY_threshold = 2)
 }
 \arguments{
 \item{df}{a dataframe with a strain column and columns for each trait for processing.}
