@@ -1,13 +1,13 @@
-df <- data.table::fread("~/AndersenLab/Github_Repos/cegwas2/inst/extdata/test_phenotype.tsv")
+df <- data.table::fread("inst/extdata/test_phenotype.tsv")
 
 # extract strain, isotype dataframe from database
 generate_isotype_lookup <- function(species = "ce") {
 
-    if( species == "ce" ) {
+    if ( species == "ce" ) {
         isotype_lookup <- dplyr::collect(get_db("strain")) %>%
-            dplyr::mutate(strain_names = ifelse(!is.na(previous_names),
-                                                paste(strain, previous_names, sep="|"),
-                                                strain)) %>%
+            dplyr::mutate(strain_names = ifelse(!is.na( previous_names ),
+                                                paste( strain, previous_names, sep = "|" ),
+                                                strain )) %>%
             tidyr::separate_rows(strain_names, sep = "\\|") %>%
             dplyr::select(strain = strain_names, isotype)
     }
@@ -25,7 +25,7 @@ resolve_isotypes <- function( strains2resolve, isotype_lookup = generate_isotype
         dplyr::rename( strain = isotype ) %>%
         dplyr::pull( strain )
 
-    if( sum(is.na(resolved_strains)) > 0 ){
+    if ( sum(is.na(resolved_strains)) > 0 ){
         unresolved_strains <- sum(is.na(resolved_strains))
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
                        \n{unresolved_strains} strains were not resolved.
@@ -41,7 +41,7 @@ BAMF_prune <- function( data, remove_outliers = TRUE ){
     categorize1 <- function(data) {
         with(data,
              ( (sixhs >= 1 & ( (s6h + s5h + s4h ) / numst) <= .05))
-             | ((sixls >= 1 & ( (s6l + s5l + s4l) / numst) <= .05))
+             | ( (sixls >= 1 & ( (s6l + s5l + s4l) / numst) <= .05))
         )
     }
 
@@ -53,7 +53,7 @@ BAMF_prune <- function( data, remove_outliers = TRUE ){
     categorize2 <- function(data) {
         with(data,
              ( (fivehs >= 1 & ( (s6h + s5h + s4h + s3h) / numst) <= .05))
-             | ((fivels >= 1 & ( (s6l + s5l + s4l + s3l) / numst) <= .05))
+             | ( (fivels >= 1 & ( (s6l + s5l + s4l + s3l) / numst) <= .05))
         )
     }
 
@@ -65,7 +65,7 @@ BAMF_prune <- function( data, remove_outliers = TRUE ){
     categorize3 <- function(data) {
         with(data,
              ( (fourhs >= 1 & (s5h + s4h + s3h + s2h) / numst <= .05))
-             | ((fourls >= 1 & (s5l + s4l + s3l + s2l) / numst <= .05))
+             | ( (fourls >= 1 & (s5l + s4l + s3l + s2l) / numst <= .05))
         )
     }
 
@@ -84,19 +84,19 @@ BAMF_prune <- function( data, remove_outliers = TRUE ){
                                        na.rm = TRUE)) %>%
         # Add a column for the boundaries of each of the bins
         dplyr::mutate(cut1h = q3 + (iqr * 2),
-                      cut1l =q1 - (iqr * 2),
+                      cut1l = q1 - (iqr * 2),
                       cut2h = q3 + (iqr * 3),
-                      cut2l =q1 - (iqr * 3),
+                      cut2l = q1 - (iqr * 3),
                       cut3h = q3 + (iqr * 4),
-                      cut3l =q1 - (iqr * 4),
+                      cut3l = q1 - (iqr * 4),
                       cut4h = q3 + (iqr * 5),
-                      cut4l =q1 - (iqr * 5),
+                      cut4l = q1 - (iqr * 5),
                       cut5l = q1 - (iqr * 7),
                       cut5h = q3 + (iqr * 7),
                       cut6l = q1 - (iqr * 10),
                       cut6h = q3 + (iqr * 10)) %>%
         # Join the bin boundaries back to the original data frame
-        dplyr::left_join(data, ., by=c("trait")) %>%
+        dplyr::left_join(data, ., by = c("trait")) %>%
         dplyr::ungroup() %>%
         dplyr::rowwise() %>%
         # Add columns tallying the total number of points in each of the bins
@@ -136,23 +136,23 @@ BAMF_prune <- function( data, remove_outliers = TRUE ){
                       s4l = sum(fourls, na.rm = TRUE),
                       s5l = sum(fivels, na.rm = TRUE),
                       s6h = sum(sixhs, na.rm = TRUE),
-                      s6l = sum(sixls, na.rm = TRUE))%>%
+                      s6l = sum(sixls, na.rm = TRUE)) %>%
         # Group on condition and trait, then check to see if the number of
         # points in each bin is more than 5% of the total number of data points
         dplyr::group_by(trait) %>%
-        dplyr::mutate(p1h = ifelse(sum(onehs, na.rm = TRUE) / n() >= .05,1,0),
-                      p2h = ifelse(sum(twohs, na.rm = TRUE) / n() >= .05,1,0),
-                      p3h = ifelse(sum(threehs, na.rm = TRUE) / n() >= .05,1,0),
-                      p4h = ifelse(sum(fourhs, na.rm = TRUE) / n() >= .05,1,0),
-                      p5h = ifelse(sum(fivehs, na.rm = TRUE) / n() >= .05,1,0),
-                      p6h = ifelse(sum(sixhs, na.rm = TRUE) / n() >= .05,1,0),
-                      p1l = ifelse(sum(onels, na.rm = TRUE) / n() >= .05,1,0),
-                      p2l = ifelse(sum(twols, na.rm = TRUE) / n() >= .05,1,0),
-                      p3l = ifelse(sum(threels, na.rm = TRUE) / n() >= .05,1,0),
-                      p4l = ifelse(sum(fourls, na.rm = TRUE) / n() >= .05,1,0),
-                      p5l = ifelse(sum(fivels, na.rm = TRUE) / n() >= .05,1,0),
+        dplyr::mutate(p1h = ifelse(sum(onehs, na.rm = TRUE) / n() >= .05, 1, 0),
+                      p2h = ifelse(sum(twohs, na.rm = TRUE) / n() >= .05, 1, 0),
+                      p3h = ifelse(sum(threehs, na.rm = TRUE) / n() >= .05, 1, 0),
+                      p4h = ifelse(sum(fourhs, na.rm = TRUE) / n() >= .05 ,1, 0),
+                      p5h = ifelse(sum(fivehs, na.rm = TRUE) / n() >= .05 ,1 ,0),
+                      p6h = ifelse(sum(sixhs, na.rm = TRUE) / n() >= .05 ,1, 0),
+                      p1l = ifelse(sum(onels, na.rm = TRUE) / n() >= .05 ,1, 0),
+                      p2l = ifelse(sum(twols, na.rm = TRUE) / n() >= .05 ,1, 0),
+                      p3l = ifelse(sum(threels, na.rm = TRUE) / n() >= .05 ,1,0),
+                      p4l = ifelse(sum(fourls, na.rm = TRUE) / n() >= .05 , 1, 0),
+                      p5l = ifelse(sum(fivels, na.rm = TRUE) / n() >= .05, 1, 0),
                       p6l = ifelse(sum(sixls,
-                                       na.rm = TRUE) / n() >= .05,1,0)) %>%
+                                       na.rm = TRUE) / n() >= .05, 1, 0)) %>%
         # Count the number of observations in each condition/trait combination
         dplyr::mutate(numst = n()) %>%
         # Group on trait, then filter out NAs in any of the added
@@ -181,12 +181,12 @@ BAMF_prune <- function( data, remove_outliers = TRUE ){
                       cuts1 = categorize2(.),
                       cuts2 = categorize3(.))
 
-    if( remove_outliers == T){
+    if ( remove_outliers == T){
         outliers_removed <- datawithoutliers %>%
             dplyr::rename(bamfoutlier1 = cuts,
                           bamfoutlier2 = cuts1,
-                          bamfoutlier3 = cuts2)%>%
-            dplyr::filter(!bamfoutlier1 & !bamfoutlier2 & !bamfoutlier3)%>%
+                          bamfoutlier3 = cuts2) %>%
+            dplyr::filter(!bamfoutlier1 & !bamfoutlier2 & !bamfoutlier3) %>%
             dplyr::select(trait, strain, phenotype)
 
         return(outliers_removed)
@@ -258,7 +258,7 @@ process_phenotypes <- function(df,
                            \nRemoving strain(s) {strains_to_remove} because they do not fall into a defined isotype.
                            \n~ ~ ~ WARNING ~ ~ ~"))
 
-        df_non_isotypes_removed <- dplyr::filter( df, !(strain %in% strains_to_remove) )
+        df_non_isotypes_removed <- dplyr::filter( df, !( strain %in% strains_to_remove) )
     } else {
         df_non_isotypes_removed <- df
     }
@@ -272,8 +272,8 @@ process_phenotypes <- function(df,
     # ~ ~ ~ # summarize replicate data # ~ ~ ~ #
 
     df_replicates_summarized <- df_isotypes_resolved %>%
-        dplyr::group_by( isotype, trait ) %>%
-        { if (summarize_replicates == "mean") dplyr::summarise(., phenotype = mean( phenotype, na.rm = T ) )
+        dplyr::group_by( isotype, trait ) %>% {
+            if (summarize_replicates == "mean") dplyr::summarise(., phenotype = mean( phenotype, na.rm = T ) )
             else if (summarize_replicates == "median") dplyr::summarise(., phenotype = median( phenotype, na.rm = T ) )
             else  message(glue::glue("~ ~ ~ WARNING ~ ~ ~
                                      \nPlease choose mean or median as options for summarizeing replicate data.
@@ -281,7 +281,9 @@ process_phenotypes <- function(df,
         dplyr::rename(strain = isotype)
 
     # included for testing to make sure BAMF_prune is removing something
-    # df_replicates_summarized_with_outs <- dplyr::mutate(df_replicates_summarized, new_pheno = ifelse(strain == "N2", 1000, phenotype))%>%
+    # df_replicates_summarized_with_outs <- dplyr::mutate(df_replicates_summarized, new_pheno = ifelse(strain == "N2",
+    #                                                                                                  1000,
+    #                                                                                                  phenotype))%>%
     #   dplyr::select(-phenotype)%>%
     #   dplyr::select(strain, trait, phenotype = new_pheno)
 
@@ -294,7 +296,7 @@ process_phenotypes <- function(df,
 
         df_outliers <-  dplyr::ungroup(df_replicates_summarized) %>%
             dplyr::group_by(trait) %>%
-            transmute_if(is.numeric, funs( outlier = is_out_z ) ) %>%
+            dplyr::transmute_if(is.numeric, dplyr::funs( outlier = is_out_z ) ) %>%
             dplyr::ungroup() %>%
             dplyr::bind_cols(., dplyr::ungroup(df_replicates_summarized)) %>%
             dplyr::select(strain, trait, phenotype, outlier)
@@ -303,7 +305,7 @@ process_phenotypes <- function(df,
 
         df_outliers <-  dplyr::ungroup(df_replicates_summarized) %>%
             dplyr::group_by(trait) %>%
-            transmute_if(is.numeric, funs( outlier = is_out_tukey ) ) %>%
+            dplyr::transmute_if(is.numeric, dplyr::funs( outlier = is_out_tukey ) ) %>%
             dplyr::ungroup() %>%
             dplyr::bind_cols(., dplyr::ungroup(df_replicates_summarized)) %>%
             dplyr::select(strain, trait, phenotype, outlier)
@@ -312,7 +314,7 @@ process_phenotypes <- function(df,
 
         df_outliers <-  dplyr::ungroup(df_replicates_summarized) %>%
             dplyr::group_by(trait) %>%
-            transmute_if(is.numeric, funs( outlier = is_out_mad ) ) %>%
+            dplyr::transmute_if(is.numeric, dplyr::funs( outlier = is_out_mad ) ) %>%
             dplyr::ungroup() %>%
             dplyr::bind_cols(., dplyr::ungroup(df_replicates_summarized)) %>%
             dplyr::select(strain, trait, phenotype, outlier)
@@ -337,15 +339,13 @@ process_phenotypes <- function(df,
 }
 
 process_phenotypes(df = df,
-    summarize_replicates = "mean",
-    prune_method = "BAMF",
-    remove_outliers = TRUE)
+                   summarize_replicates = "mean",
+                   prune_method = "BAMF",
+                   remove_outliers = TRUE)
 
 pr_df <- process_phenotypes(df = df,
-                   summarize_replicates = "mean",
-                   prune_method = "Z",
-                   remove_outliers = FALSE)
-
-
+                            summarize_replicates = "mean",
+                            prune_method = "Z",
+                            remove_outliers = FALSE)
 
 
