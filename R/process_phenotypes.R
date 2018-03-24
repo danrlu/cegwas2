@@ -1,23 +1,15 @@
-df <- data.table::fread("inst/extdata/test_phenotype.tsv")
-
-# extract strain, isotype dataframe from database
-generate_isotype_lookup <- function(species = "ce") {
-
-    if ( species == "ce" ) {
-        isotype_lookup <- dplyr::collect(get_db("strain")) %>%
-            dplyr::mutate(strain_names = ifelse(!is.na( previous_names ),
-                                                paste( strain, previous_names, sep = "|" ),
-                                                strain )) %>%
-            tidyr::separate_rows(strain_names, sep = "\\|") %>%
-            dplyr::select(strain = strain_names, isotype)
-    }
-
-    return( isotype_lookup )
-}
-
+#' \code{resolve_isotypes} takes a vector of strain names and converts them to CeNDR-defined isotype names
+#'
+#' @param strains2resolve a vector of strain names to change to isotype names.
+#' @param isotype_lookup a tibble that contains two columns - strain, isotype.
+#' This is used to change input strain names. Default option queries CeNDR isotypes
+#' @return Output is a vector with isotype names
+#' @seealso \link{proces_phenotypes}
+#' @export
+#'
 # strains2resolve is a vector of strain names
 # isotype_lookup is a dataframe of strain, isotype
-resolve_isotypes <- function( strains2resolve, isotype_lookup = generate_isotype_lookup() ){
+resolve_isotypes <- function(strains2resolve, isotype_lookup = generate_isotype_lookup() ){
 
     resolved_strains <- data.frame( strain = as.character(strains2resolve) ) %>%
         dplyr::left_join( ., isotype_lookup, by = "strain") %>%
@@ -36,7 +28,7 @@ resolve_isotypes <- function( strains2resolve, isotype_lookup = generate_isotype
 }
 
 # data = strain, trait, phenotype
-BAMF_prune <- function( data, remove_outliers = TRUE ){
+BAMF_prune <- function(data, remove_outliers = TRUE ){
 
     categorize1 <- function(data) {
         with(data,
@@ -203,8 +195,6 @@ BAMF_prune <- function( data, remove_outliers = TRUE ){
     }
 }
 
-
-
 #' Process phenotypes for mapping
 #'
 #' \code{process_phenotypes} takes input raw phenotype data and converts strain names to
@@ -224,7 +214,7 @@ process_phenotypes <- function(df,
                                prune_method = "BAMF",
                                remove_outliers = TRUE,
                                Z_threshold = 2,
-                               MAD_threshold = 2
+                               MAD_threshold = 2,
                                TUKEY_threshold = 2){
     if ( sum(grepl(colnames(df)[1], "Strain", ignore.case = T)) == 0 ) {
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
@@ -268,7 +258,8 @@ process_phenotypes <- function(df,
             else  message(glue::glue("~ ~ ~ WARNING ~ ~ ~
                                      \nPlease choose mean or median as options for summarizeing replicate data.
                                      \n~ ~ ~ WARNING ~ ~ ~")) } %>%
-        dplyr::rename(strain = isotype)
+        dplyr::rename(strain = isotype) %>%
+        dplyr::ungroup()
 
     # included for testing to make sure BAMF_prune is removing something
     # df_replicates_summarized_with_outs <- dplyr::mutate(df_replicates_summarized, new_pheno = ifelse(strain == "N2",
@@ -281,7 +272,7 @@ process_phenotypes <- function(df,
         quar <- quantile(x, probs = c(0.25, 0.75), na.rm = na.rm)
         iqr <- diff(quar)
 
-        ( !(quar[1] - k * iqr <= x) ) & ( !(x <= quar[2] + k * iqr) )
+        ( !(quar[1] - k * iqr <= x) ) | ( !(x <= quar[2] + k * iqr) )
     }
 
     is_out_z <- function(x, thres = Z_threshold, na.rm = TRUE) {
@@ -341,4 +332,19 @@ process_phenotypes <- function(df,
     }
 
     return(processed_phenotypes_output)
+}
+
+# extract strain, isotype dataframe from database
+generate_isotype_lookup <- function(species = "ce") {
+
+    if ( species == "ce" ) {
+        isotype_lookup <- dplyr::collect(get_db("strain")) %>%
+            dplyr::mutate(strain_names = ifelse(!is.na( previous_names ),
+                                                paste( strain, previous_names, sep = "|" ),
+                                                strain )) %>%
+            tidyr::separate_rows(strain_names, sep = "\\|") %>%
+            dplyr::select(strain = strain_names, isotype)
+    }
+
+    return( isotype_lookup )
 }
