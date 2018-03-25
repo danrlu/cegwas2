@@ -1,11 +1,31 @@
+#' Perform GWA analysis
+#'
+#' \code{perform_mapping} runs association mapping on a phenotype
+#'
+#' @param phenotype a data frame with columns: strain and phenotype [\strong{Default:} \code{"wormbase_gene"}]
+#' @param genotype a genotype matrix in the format [\strong{Default:} \code{cegwas2::snps}]
+#' @param kinship a N x N relatedness matrix in the format [\strong{Default:} \code{cegwas2::kinship}]
+#' @param P3D TRUE/FALSE - TRUE refers to the EMMAx algorithm, FALSE refers to EMMA algorithm
+#' [\strong{Default:} \code{FALSE}]
+#' @param MAF a value ranging from 0 - 1 that determines the minimum minor allele frequencey
+#' a marker must have to be used in association mapping [\strong{Default:} \code{0.05}]
+#' @examples get_db()
+#' @return a dataframe with the following columns
+#' \itemize{
+#'      \item \strong{CHROM} - Chromosome name
+#'      \item \strong{POS} - Physical position of marker
+#'      \item \strong{marker} - Marker name
+#'      \item \strong{trait} - Trait name of input phenotype
+#'      \item \strong{BF} - Bonferroni-corrected p-value threshold
+#'      \item \strin{log10p} - [\code{-log10}] transformation of the p-value for the indicated marker
+#' }
+#' @export
 
-perform_mapping <- function(phenotype = pr_phenotypes[,1:2],
+perform_mapping <- function(phenotype = NULL,
                             genotype = cegwas2::snps,
                             kinship = cegwas2::kinship,
                             P3D = FALSE,
-                            model = "additive",
-                            MAF = 0.05,
-                            FDR = 0.05) {
+                            MAF = 0.05) {
 
     # Clean phenotypes
     Y = na.omit(phenotype)
