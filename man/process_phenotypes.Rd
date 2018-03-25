@@ -5,8 +5,7 @@
 \title{Process phenotypes for mapping}
 \usage{
 process_phenotypes(df, summarize_replicates = "mean", prune_method = "BAMF",
-  remove_outliers = TRUE, Z_threshold = 2, MAD_threshold = 2,
-  TUKEY_threshold = 2)
+  remove_outliers = TRUE, threshold = 2)
 }
 \arguments{
 \item{df}{a dataframe with a strain column and columns for each trait for processing.}
@@ -17,6 +16,8 @@ process_phenotypes(df, summarize_replicates = "mean", prune_method = "BAMF",
 
 \item{remove_outliers}{boolean to specify if outliers should be eliminated within the function.
 If FALSE, additional columns will be output specifying if the strain phenotype is an outier.}
+
+\item{threshold}{integer value defining the threshold for outlier removal, default = 2}
 }
 \value{
 Output is a dataframe with

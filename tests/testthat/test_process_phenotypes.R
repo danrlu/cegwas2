@@ -1,9 +1,9 @@
 #df <- data.table::fread("inst/extdata/test_phenotype.tsv")
-# A test VCF file with no annotation field
-df <- system.file("extdata",
+
+df <- data.table::fread(system.file("extdata",
                   "test_phenotype.tsv",
                   package = "cegwas2",
-                  mustWork = TRUE)
+                  mustWork = TRUE))
 
 test_that("Check number of rows in test phenotype set", {
     expect_true(nrow(df) == 7469)
@@ -40,9 +40,9 @@ test_that("Test process_phenotypes output with Z keep outliers", {
                                         summarize_replicates = "mean",
                                         prune_method = "Z",
                                         remove_outliers = TRUE,
-                                        Z_threshold = 3) %>%
+                                        threshold = 3) %>%
         dplyr::rowwise() %>%
-        dplyr::filter_all( ., any_vars(is.na(.)) )
+        dplyr::filter_all( ., dplyr::any_vars(is.na(.)) )
 
 
     expect_equal(nrow(pr_phenotypes), 9)
@@ -57,9 +57,9 @@ test_that("Test process_phenotypes output with TUKEY keep outliers", {
                                         summarize_replicates = "mean",
                                         prune_method = "TUKEY",
                                         remove_outliers = FALSE,
-                                        TUKEY_threshold = 2) %>%
+                                        threshold = 2) %>%
         dplyr::rowwise() %>%
-        dplyr::filter_all( ., any_vars(is.na(.)) )
+        dplyr::filter_all( ., dplyr::any_vars(is.na(.)) )
 
 
     expect_equal(nrow(pr_phenotypes), 30)
@@ -72,7 +72,7 @@ test_that("Test process_phenotypes output with TUKEY keep outliers", {
                                         summarize_replicates = "mean",
                                         prune_method = "TUKEY",
                                         remove_outliers = FALSE,
-                                        TUKEY_threshold = 2)
+                                        threshold = 2)
 
 
     expect_equal(nrow(pr_phenotypes), 255)
@@ -85,9 +85,9 @@ test_that("Test process_phenotypes output with MAD keep outliers", {
                                         summarize_replicates = "mean",
                                         prune_method = "MAD",
                                         remove_outliers = FALSE,
-                                        TUKEY_threshold = 2) %>%
+                                        threshold = 2) %>%
         dplyr::rowwise() %>%
-        dplyr::filter_all( ., any_vars(is.na(.)) )
+        dplyr::filter_all( ., dplyr::any_vars(is.na(.)) )
 
 
     expect_equal(nrow(pr_phenotypes), 114)
@@ -100,9 +100,9 @@ test_that("Test process_phenotypes output with MAD keep outliers - median", {
                                         summarize_replicates = "median",
                                         prune_method = "MAD",
                                         remove_outliers = FALSE,
-                                        TUKEY_threshold = 2) %>%
+                                        threshold = 2) %>%
         dplyr::rowwise() %>%
-        dplyr::filter_all( ., any_vars(is.na(.)) )
+        dplyr::filter_all( ., dplyr::any_vars(is.na(.)) )
 
 
     expect_equal(nrow(pr_phenotypes), 104)

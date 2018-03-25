@@ -92,14 +92,14 @@ BAMF_prune <- function(data, remove_outliers = TRUE ){
         dplyr::ungroup() %>%
         dplyr::rowwise() %>%
         # Add columns tallying the total number of points in each of the bins
-        dplyr::mutate(onehs = ifelse( cut2h > phenotype & phenotype >= cut1h,
-                                      1, 0),
-                      onels = ifelse( cut2l < phenotype & phenotype <= cut1l,
-                                      1, 0),
-                      twohs = ifelse( cut3h > phenotype & phenotype >= cut2h,
-                                      1, 0),
-                      twols = ifelse( cut3l < phenotype & phenotype <= cut2l,
-                                      1, 0),
+        dplyr::mutate(onehs = ifelse(cut2h > phenotype & phenotype >= cut1h,
+                                     1, 0),
+                      onels = ifelse(cut2l < phenotype & phenotype <= cut1l,
+                                     1, 0),
+                      twohs = ifelse(cut3h > phenotype & phenotype >= cut2h,
+                                     1, 0),
+                      twols = ifelse(cut3l < phenotype & phenotype <= cut2l,
+                                     1, 0),
                       threehs = ifelse(cut4h > phenotype & phenotype >= cut3h,
                                        1, 0),
                       threels = ifelse(cut4l < phenotype & phenotype <= cut3l,
@@ -205,6 +205,7 @@ BAMF_prune <- function(data, remove_outliers = TRUE ){
 #' @param prune_method method for eliminating outliers, currently limited to "BAMF", "Z", "TUKEY", "MAD"
 #' @param remove_outliers boolean to specify if outliers should be eliminated within the function.
 #' If FALSE, additional columns will be output specifying if the strain phenotype is an outier.
+#' @param threshold integer value defining the threshold for outlier removal, default = 2
 #' @return Output is a dataframe with
 #' @seealso \link{generate_kinship} \link{generate_mapping}
 #' @export
@@ -213,9 +214,8 @@ process_phenotypes <- function(df,
                                summarize_replicates = "mean",
                                prune_method = "BAMF",
                                remove_outliers = TRUE,
-                               Z_threshold = 2,
-                               MAD_threshold = 2,
-                               TUKEY_threshold = 2){
+                               threshold = 2){
+
     if ( sum(grepl(colnames(df)[1], "Strain", ignore.case = T)) == 0 ) {
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
                            \nCheck input data format, strain should be the first column.
@@ -243,13 +243,14 @@ process_phenotypes <- function(df,
         df_non_isotypes_removed <- df
     }
 
-    # resolve isotypes
+    # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Resolve Isotypes # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
+
     df_isotypes_resolved <- df_non_isotypes_removed %>%
         dplyr::mutate( isotype = resolve_isotypes( strain, strain_isotypes_db ) ) %>%
         tidyr::gather( trait, phenotype, -strain, -isotype ) %>%
         dplyr::filter( !is.na(phenotype) )
 
-    # ~ ~ ~ # summarize replicate data # ~ ~ ~ #
+    # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Summarize Replicate Data # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
 
     df_replicates_summarized <- df_isotypes_resolved %>%
         dplyr::group_by( isotype, trait ) %>% {
@@ -261,29 +262,23 @@ process_phenotypes <- function(df,
         dplyr::rename(strain = isotype) %>%
         dplyr::ungroup()
 
-    # included for testing to make sure BAMF_prune is removing something
-    # df_replicates_summarized_with_outs <- dplyr::mutate(df_replicates_summarized, new_pheno = ifelse(strain == "N2",
-    #                                                                                                  1000,
-    #                                                                                                  phenotype))%>%
-    #   dplyr::select(-phenotype)%>%
-    #   dplyr::select(strain, trait, phenotype = new_pheno)
-
-    is_out_tukey <- function(x, k = TUKEY_threshold, na.rm = TRUE) {
+    # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Outlier Functions # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
+    is_out_tukey <- function(x, k = threshold, na.rm = TRUE) {
         quar <- quantile(x, probs = c(0.25, 0.75), na.rm = na.rm)
         iqr <- diff(quar)
 
         ( !(quar[1] - k * iqr <= x) ) | ( !(x <= quar[2] + k * iqr) )
     }
 
-    is_out_z <- function(x, thres = Z_threshold, na.rm = TRUE) {
+    is_out_z <- function(x, thres = threshold, na.rm = TRUE) {
         ( !abs(x - mean(x, na.rm = na.rm)) <= thres * sd(x, na.rm = na.rm) )
     }
 
-    is_out_mad <- function(x, thres = MAD_threshold, na.rm = TRUE) {
+    is_out_mad <- function(x, thres = threshold, na.rm = TRUE) {
         ( !abs(x - median(x, na.rm = na.rm)) <= thres * mad(x, na.rm = na.rm) )
     }
 
-    # ~ ~ ~ # Perform outlier removal # ~ ~ ~ #
+    # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Perform outlier removal # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
     if ( prune_method == "BAMF" ) {
 
         df_outliers <- BAMF_prune(df_replicates_summarized, remove_outliers = FALSE)
