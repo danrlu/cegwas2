@@ -43,7 +43,7 @@ perform_mapping <- function(phenotype = NULL,
     markers_sorted <- data.frame(markers[,1:3],
                                  markers[, sort(names(markers[names(markers)%in%Y$strain]))])
 
-    # ID markers
+    # ID markers that have a MAF outside the user-defined range
     keepMarkers <- data.frame(
         MAF = apply(markers_sorted[,4:ncol(markers_sorted)],
                     MARGIN = 1,
@@ -55,9 +55,11 @@ perform_mapping <- function(phenotype = NULL,
         dplyr::filter(MAF >= min.MAF) %>%
         dplyr::filter(MAF <= 1 - min.MAF)
 
+    # Remove markers identified to be out of MAF range
     M <- markers_sorted %>%
         dplyr::filter(marker %in% keepMarkers$marker)
 
+    # Perform mapping
     gwa_results = rrBLUP::GWAS(pheno = data.frame(Y),
                                geno = data.frame(M),
                                K = K,
@@ -66,6 +68,7 @@ perform_mapping <- function(phenotype = NULL,
                                n.core = parallel::detectCores(),
                                P3D = P3D)
 
+    # Process mapping results
     gwa_results_pr <- gwa_results %>%
         dplyr::rename(log10p = trait) %>%
         dplyr::filter(log10p != 0) %>%
@@ -74,7 +77,6 @@ perform_mapping <- function(phenotype = NULL,
         dplyr::select(CHROM, POS, marker, trait, BF, log10p)
 
     return(gwa_results_pr)
-
 }
 
 

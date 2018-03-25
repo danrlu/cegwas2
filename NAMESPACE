@@ -2,6 +2,7 @@
 
 export(cendr_dataset_release)
 export(get_db)
+export(perform_mapping)
 export(process_phenotypes)
 export(query_vcf)
 export(resolve_isotypes)
