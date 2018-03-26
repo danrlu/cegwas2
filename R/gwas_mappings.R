@@ -74,7 +74,9 @@ perform_mapping <- function(phenotype = NULL,
         dplyr::filter(log10p != 0) %>%
         dplyr::mutate(BF = log10(.05/n()),
                       trait = colnames(Y)[2]) %>%
-        dplyr::select(CHROM, POS, marker, trait, BF, log10p)
+        dplyr::select(CHROM, POS, marker, trait, BF, log10p) %>%
+        dplyr::mutate(pval = 10^-log10p) %>%
+        dplyr::mutate(Zscore = (pval - mean(pval)) / sd(pval))
 
     return(gwa_results_pr)
 }

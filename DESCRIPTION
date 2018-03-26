@@ -15,7 +15,8 @@ Imports:
     tidyverse,
     data.table,
     RSQLite,
-    sommer
+    sommer,
+    NCmisc
 Suggests: 
     testthat,
     covr

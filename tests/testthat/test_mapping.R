@@ -10,7 +10,7 @@ test_that("Test EMMAx mapping", {
                                                  prune_method = "BAMF",
                                                  remove_outliers = TRUE)
 
-    gmap <- perform_mapping(phenotype = pr_phenotypes[,1:2],
+    gmap <- cegwas2::perform_mapping(phenotype = pr_phenotypes[,1:2],
                             genotype = cegwas2::snps,
                             kinship = cegwas2::kinship,
                             P3D = TRUE,
