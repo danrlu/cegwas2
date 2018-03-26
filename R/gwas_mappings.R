@@ -52,8 +52,8 @@ perform_mapping <- function(phenotype = NULL,
                         return(sum(x, na.rm = T)/length(x))}
         )) %>%
         dplyr::mutate(marker = markers_sorted$marker) %>%
-        dplyr::filter(MAF >= min.MAF) %>%
-        dplyr::filter(MAF <= 1 - min.MAF)
+        dplyr::filter(MAF >= MAF) %>%
+        dplyr::filter(MAF <= 1 - MAF)
 
     # Remove markers identified to be out of MAF range
     M <- markers_sorted %>%
@@ -64,7 +64,7 @@ perform_mapping <- function(phenotype = NULL,
                                geno = data.frame(M),
                                K = K,
                                n.PC = 0,
-                               min.MAF = min.MAF,
+                               min.MAF = MAF,
                                n.core = parallel::detectCores(),
                                P3D = P3D)
 
