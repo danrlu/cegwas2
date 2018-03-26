@@ -25,7 +25,7 @@ perform_mapping <- function(phenotype = NULL,
                             genotype = cegwas2::snps,
                             kinship = cegwas2::kinship,
                             P3D = FALSE,
-                            MAF = 0.05) {
+                            min.MAF = 0.05) {
 
     # Clean phenotypes
     Y = na.omit(phenotype)
@@ -52,8 +52,8 @@ perform_mapping <- function(phenotype = NULL,
                         return(sum(x, na.rm = T)/length(x))}
         )) %>%
         dplyr::mutate(marker = markers_sorted$marker) %>%
-        dplyr::filter(MAF >= MAF) %>%
-        dplyr::filter(MAF <= 1 - MAF)
+        dplyr::filter(MAF >= min.MAF) %>%
+        dplyr::filter(MAF <= 1 - min.MAF)
 
     # Remove markers identified to be out of MAF range
     M <- markers_sorted %>%
@@ -64,7 +64,7 @@ perform_mapping <- function(phenotype = NULL,
                                geno = data.frame(M),
                                K = K,
                                n.PC = 0,
-                               min.MAF = MAF,
+                               min.MAF = min.MAF,
                                n.core = parallel::detectCores(),
                                P3D = P3D)
 
