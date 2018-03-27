@@ -359,10 +359,8 @@ generate_isotype_lookup <- function(species = "ce") {
                                                 paste( strain, previous_names, sep = "|" ),
                                                 strain )) %>%
             tidyr::separate_rows(strain_names, sep = "\\|") %>%
-            dplyr::select(strain = strain_names, isotype) %>%
-            dplyr::distinct(strain, isotype) %>%
-            dplyr::group_by(strain) %>%
-            dplyr::mutate(n_isotype = n())
+            dplyr::select(strain, previous_name = strain_names, isotype) %>%
+            dplyr::distinct()
     }
 
     return( isotype_lookup )
