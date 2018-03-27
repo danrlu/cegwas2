@@ -12,16 +12,50 @@
 resolve_isotypes <- function(strains2resolve, isotype_lookup = generate_isotype_lookup() ){
 
     resolved_strains <- data.frame( strain = as.character(strains2resolve) ) %>%
-        dplyr::left_join( ., isotype_lookup, by = "strain") %>%
-        dplyr::select( -strain ) %>%
-        dplyr::rename( strain = isotype ) %>%
-        dplyr::pull( strain )
+        dplyr::left_join( ., isotype_lookup, by = "strain")
 
     if ( sum(is.na(resolved_strains)) > 0 ){
         unresolved_strains <- sum(is.na(resolved_strains))
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
                        \n{unresolved_strains} strains were not resolved.
                        \n~ ~ ~ WARNING ~ ~ ~"))
+        resolved_strains <- resolved_strains%>%
+            dplyr::select( -strain ) %>%
+            dplyr::rename( strain = isotype ) %>%
+            dplyr::pull( strain )
+    }
+
+    if ( length(unique(resolved_strains$n_isotype)) != 1 ) {
+        strain_discrepancy <- dplyr::filter(resolved_strains, n_isotype == 2) %>%
+            dplyr::pull(strain) %>%
+            unique() %>%
+            length()
+
+        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
+                       \n{strain_discrepancy} strains have two isotypes.
+                           \n~ ~ ~ WARNING ~ ~ ~"))
+
+        two_isotype_strains <- dplyr::filter(resolved_strains, n_isotype == 2)
+
+        if (unique(two_isotype_strains$strain) == "N2"){
+            resolved_strains <- resolved_strains %>%
+                dplyr::filter(!(strain == "N2" & isotype == "LSJ1")) %>%
+                dplyr::select( -strain ) %>%
+                dplyr::rename( strain = isotype ) %>%
+                dplyr::pull( strain )
+        } else {
+            unresolved_strains <- unique(two_isotype_strains$strain)
+
+            resolved_strains <- resolved_strains %>%
+                dplyr::select( -strain ) %>%
+                dplyr::rename( strain = isotype ) %>%
+                dplyr::pull( strain )
+            resolved_strains[resolved_strains%in%unresolved_strains] <- NA
+
+            message(glue::glue("~ ~ ~ WARNING ~ ~ ~
+                       \n{unresolved_strains} set to NA, consider switching to a defined isotype.
+                               \n~ ~ ~ WARNING ~ ~ ~"))
+        }
     }
 
     return( resolved_strains )
@@ -325,7 +359,10 @@ generate_isotype_lookup <- function(species = "ce") {
                                                 paste( strain, previous_names, sep = "|" ),
                                                 strain )) %>%
             tidyr::separate_rows(strain_names, sep = "\\|") %>%
-            dplyr::select(strain = strain_names, isotype)
+            dplyr::select(strain = strain_names, isotype) %>%
+            dplyr::distinct(strain, isotype) %>%
+            dplyr::group_by(strain) %>%
+            dplyr::mutate(n_isotype = n())
     }
 
     return( isotype_lookup )
