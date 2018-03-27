@@ -2,23 +2,23 @@
 #'
 #' \code{resolve_isotypes} takes a vector of strain names and converts them to CeNDR-defined isotype names
 #'
-#' @param strains2resolve a vector of strain names to change to isotype names.
+#' @param strains a vector of strain names to change to isotype names.
 #' @param isotype_lookup a tibble that contains two columns - strain, previous_name, isotype.
 #' This is used to change input strain names. Default option queries CeNDR isotypes
 #' @return Output is a vector with isotype names
 #' @export
-resolve_isotypes <- function(strains2resolve,
+resolve_isotypes <- function(strains,
                              isotype_lookup = generate_isotype_lookup() ){
 
-    if (any(strains2resolve %in% isotype_lookup$strain)) {
-        isotype <- dplyr::filter(isotype_lookup, strain == strains2resolve) %>%
+    if (any(strains %in% isotype_lookup$strain)) {
+        isotype <- dplyr::filter(isotype_lookup, strain == strains) %>%
             dplyr::pull(isotype)
-    } else if (any(strains2resolve %in% isotype_lookup$previous_name)) {
-        isotype <- dplyr::filter(isotype_lookup, previous_name == strains2resolve) %>%
+    } else if (any(strains %in% isotype_lookup$previous_name)) {
+        isotype <- dplyr::filter(isotype_lookup, previous_name == strains) %>%
             dplyr::pull(isotype)
     } else {
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \n{strains2resolve} is not a strain we are familiar with, please check CeNDR.
+                           \n{strains} is not a strain we are familiar with, please check CeNDR.
                            \n~ ~ ~ WARNING ~ ~ ~"))
         isotype <- NA
     }
@@ -26,13 +26,13 @@ resolve_isotypes <- function(strains2resolve,
         isotype <- unique(isotype)
     } else {
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \n{strains2resolve} resolved to two isotypes, please check CeNDR.
+                           \n{strains} resolved to two isotypes, please check CeNDR.
                            \n~ ~ ~ WARNING ~ ~ ~"))
         isotype <- NA
     }
     if (is.na(isotype)){
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \n{strains2resolve} set to NA, consider switching to a defined isotype.
+                           \n{strains} set to NA, consider switching to a defined isotype.
                            \n~ ~ ~ WARNING ~ ~ ~"))
     }
 

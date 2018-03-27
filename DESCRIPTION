@@ -14,8 +14,7 @@ Imports:
     dplyr,
     tidyverse,
     data.table,
-    RSQLite,
-    sommer
+    RSQLite
 Suggests: 
     testthat,
     covr

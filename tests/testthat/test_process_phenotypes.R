@@ -1,5 +1,3 @@
-#df <- data.table::fread("inst/extdata/test_phenotype.tsv")
-
 df <- data.table::fread(system.file("extdata",
                   "test_phenotype.tsv",
                   package = "cegwas2",
@@ -9,7 +7,6 @@ test_that("Check number of rows in test phenotype set", {
     expect_true(nrow(df) == 7469)
     expect_true(sum(is.na(df)) == 22398)
 })
-
 
 
 test_that("Test process_phenotypes output with BAMF remove outliers", {
