@@ -10,13 +10,17 @@
 resolve_isotypes <- function(strains2resolve,
                              isotype_lookup = generate_isotype_lookup() ){
 
-    dt_lookup_strain <- data.table::setkey(data.table::data.table(isotype_lookup), strain)
-    dt_lookup_prevname <- data.table::setkey(data.table::data.table(isotype_lookup), previous_name)
-
-    if (is.na(dt_lookup_strain[strains2resolve, isotype])) {
-        isotype <- dt_lookup_prevname[strains2resolve, isotype]
+    if (any(strains2resolve %in% isotype_lookup$strain)) {
+        isotype <- dplyr::filter(isotype_lookup, strain == strains2resolve) %>%
+            dplyr::pull(isotype)
+    } else if (any(strains2resolve %in% isotype_lookup$previous_name)) {
+        isotype <- dplyr::filter(isotype_lookup, previous_name == strains2resolve) %>%
+            dplyr::pull(isotype)
     } else {
-        isotype <- dt_lookup_strain[strains2resolve, isotype]
+        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
+                           \n{strains2resolve} is not a strain we are familiar with, please check CeNDR.
+                           \n~ ~ ~ WARNING ~ ~ ~"))
+        isotype <- NA
     }
     if (length(unique(isotype)) == 1) {
         isotype <- unique(isotype)
@@ -28,9 +32,10 @@ resolve_isotypes <- function(strains2resolve,
     }
     if (is.na(isotype)){
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                       \n{strains2resolve} set to NA, consider switching to a defined isotype.
+                           \n{strains2resolve} set to NA, consider switching to a defined isotype.
                            \n~ ~ ~ WARNING ~ ~ ~"))
     }
+
     return( isotype )
 }
 
