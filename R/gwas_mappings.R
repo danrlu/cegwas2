@@ -6,6 +6,7 @@
 #' @param genotype a genotype matrix in the format [\strong{Default:} \code{cegwas2::snps}]
 #' @param kinship a N x N relatedness matrix in the format [\strong{Default:} \code{cegwas2::kinship}]
 #' @param P3D TRUE/FALSE - TRUE refers to the EMMAx algorithm, FALSE refers to EMMA algorithm
+#' @param map_by_chrom TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
 #' [\strong{Default:} \code{FALSE}]
 #' @param MAF a value ranging from 0 - 1 that determines the minimum minor allele frequencey
 #' a marker must have to be used in association mapping [\strong{Default:} \code{0.05}]
@@ -25,7 +26,8 @@ perform_mapping <- function(phenotype = NULL,
                             genotype = cegwas2::snps,
                             kinship = cegwas2::kinship,
                             P3D = FALSE,
-                            min.MAF = 0.05) {
+                            min.MAF = 0.05,
+                            map_by_chrom = FALSE) {
 
     # Clean phenotypes
     Y = na.omit(phenotype)
@@ -59,17 +61,21 @@ perform_mapping <- function(phenotype = NULL,
     M <- markers_sorted %>%
         dplyr::filter(marker %in% keepMarkers$marker)
 
-    # Perform mapping
-    gwa_results = rrBLUP::GWAS(pheno = data.frame(Y),
-                               geno = data.frame(M),
-                               K = K,
-                               n.PC = 0,
-                               min.MAF = min.MAF,
-                               n.core = parallel::detectCores(),
-                               P3D = P3D)
+    if (map_by_chrom) {
+        # I think these are two ways to correct phenotype for relatedness
+        yfit <- rrBLUP::mixed.solve(y = Y$trait, K = K)
+        kfit <- rrBLUP::kin.blup(data = data.frame(Y), geno = "strain", pheno = "trait", K = K)
+    } else {
+        # Perform mapping
+        gwa_results = rrBLUP::GWAS(pheno = data.frame(Y),
+                                   geno = data.frame(M),
+                                   K = K,
+                                   n.PC = 0,
+                                   min.MAF = min.MAF,
+                                   n.core = parallel::detectCores(),
+                                   P3D = P3D)
+    }
 
-    yfit <- rrBLUP::mixed.solve(y = Y$trait, K = K)
-    kfit <- rrBLUP::kin.blup(data = data.frame(Y), geno = "strain", pheno = "trait", K = K)
 
     # Process mapping results
     gwa_results_pr <- gwa_results %>%
@@ -85,7 +91,8 @@ perform_mapping <- function(phenotype = NULL,
     return(gwa_results_pr)
 }
 
-# Taken from rrBLUP GWAS function ~ https://github.com/cran/rrBLUP/blob/master/R/GWAS.R
+# Taken from rrBLUP GWAS function ~
+# https://github.com/cran/rrBLUP/blob/master/R/GWAS.R
 qvalue <- function(p) {
     smooth.df = 3
 
