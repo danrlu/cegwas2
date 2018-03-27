@@ -26,6 +26,3 @@ Output is a dataframe with
 \code{process_phenotypes} takes input raw phenotype data and converts strain names to
 isotype names, summarizes replicate data, and eliminates outliers.
 }
-\seealso{
-\link{generate_kinship} \link{generate_mapping}
-}
