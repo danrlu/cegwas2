@@ -6,59 +6,31 @@
 #' @return Output is a vector with isotype names
 #' @seealso \link{proces_phenotypes}
 #' @export
-#'
-# strains2resolve is a vector of strain names
-# isotype_lookup is a dataframe of strain, isotype
-resolve_isotypes <- function(strains2resolve, isotype_lookup = generate_isotype_lookup() ){
+resolve_isotypes <- function(strains2resolve,
+                             isotype_lookup = generate_isotype_lookup() ){
 
-    resolved_strains <- data.frame( strain = as.character(strains2resolve) ) %>%
-        dplyr::left_join( ., isotype_lookup, by = "strain")
+    dt_lookup_strain <- data.table::setkey(data.table(isotype_lookup), strain)
+    dt_lookup_prevname <- data.table::setkey(data.table(isotype_lookup), previous_name)
 
-    if ( sum(is.na(resolved_strains)) > 0 ){
-        unresolved_strains <- sum(is.na(resolved_strains))
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                       \n{unresolved_strains} strains were not resolved.
-                       \n~ ~ ~ WARNING ~ ~ ~"))
-        resolved_strains <- resolved_strains%>%
-            dplyr::select( -strain ) %>%
-            dplyr::rename( strain = isotype ) %>%
-            dplyr::pull( strain )
+    if (is.na(dt_lookup_strain[strains2resolve, isotype])) {
+        isotype <- dt_lookup_prevname[strains2resolve, isotype]
+    } else {
+        isotype <- dt_lookup_strain[strains2resolve, isotype]
     }
-
-    if ( length(unique(resolved_strains$n_isotype)) != 1 ) {
-        strain_discrepancy <- dplyr::filter(resolved_strains, n_isotype == 2) %>%
-            dplyr::pull(strain) %>%
-            unique() %>%
-            length()
-
+    if (length(unique(isotype)) == 1) {
+        isotype <- unique(isotype)
+    } else {
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                       \n{strain_discrepancy} strains have two isotypes.
+                           \n{strains2resolve} resolved to two isotypes, please check CeNDR.
                            \n~ ~ ~ WARNING ~ ~ ~"))
-
-        two_isotype_strains <- dplyr::filter(resolved_strains, n_isotype == 2)
-
-        if (unique(two_isotype_strains$strain) == "N2"){
-            resolved_strains <- resolved_strains %>%
-                dplyr::filter(!(strain == "N2" & isotype == "LSJ1")) %>%
-                dplyr::select( -strain ) %>%
-                dplyr::rename( strain = isotype ) %>%
-                dplyr::pull( strain )
-        } else {
-            unresolved_strains <- unique(two_isotype_strains$strain)
-
-            resolved_strains <- resolved_strains %>%
-                dplyr::select( -strain ) %>%
-                dplyr::rename( strain = isotype ) %>%
-                dplyr::pull( strain )
-            resolved_strains[resolved_strains%in%unresolved_strains] <- NA
-
-            message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                       \n{unresolved_strains} set to NA, consider switching to a defined isotype.
-                               \n~ ~ ~ WARNING ~ ~ ~"))
-        }
+        isotype <- NA
     }
-
-    return( resolved_strains )
+    if (is.na(isotype)){
+        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
+                       \n{strains2resolve} set to NA, consider switching to a defined isotype.
+                           \n~ ~ ~ WARNING ~ ~ ~"))
+    }
+    return( isotype )
 }
 
 # data = strain, trait, phenotype
@@ -241,7 +213,6 @@ BAMF_prune <- function(data, remove_outliers = TRUE ){
 #' If FALSE, additional columns will be output specifying if the strain phenotype is an outier.
 #' @param threshold integer value defining the threshold for outlier removal, default = 2
 #' @return Output is a dataframe with
-#' @seealso \link{generate_kinship} \link{generate_mapping}
 #' @export
 #'
 process_phenotypes <- function(df,
@@ -280,14 +251,16 @@ process_phenotypes <- function(df,
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Resolve Isotypes # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
 
     df_isotypes_resolved <- df_non_isotypes_removed %>%
-        dplyr::mutate( isotype = resolve_isotypes( strain, strain_isotypes_db ) ) %>%
-        tidyr::gather( trait, phenotype, -strain, -isotype ) %>%
-        dplyr::filter( !is.na(phenotype) )
+        dplyr::group_by(strain) %>%
+        dplyr::mutate(isotype = resolve_isotypes(strain, strain_isotypes_db)) %>%
+        dplyr::ungroup() %>%
+        tidyr::gather(trait, phenotype, -strain, -isotype) %>%
+        dplyr::filter(!is.na(phenotype))
 
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Summarize Replicate Data # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
 
     df_replicates_summarized <- df_isotypes_resolved %>%
-        dplyr::group_by( isotype, trait ) %>% {
+        dplyr::group_by(isotype, trait) %>% {
             if (summarize_replicates == "mean") dplyr::summarise(., phenotype = mean( phenotype, na.rm = T ) )
             else if (summarize_replicates == "median") dplyr::summarise(., phenotype = median( phenotype, na.rm = T ) )
             else  message(glue::glue("~ ~ ~ WARNING ~ ~ ~
