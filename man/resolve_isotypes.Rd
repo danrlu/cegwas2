@@ -4,10 +4,10 @@
 \alias{resolve_isotypes}
 \title{Resolve strain names to isotypes}
 \usage{
-resolve_isotypes(strains2resolve, isotype_lookup = generate_isotype_lookup())
+resolve_isotypes(strains, isotype_lookup = generate_isotype_lookup())
 }
 \arguments{
-\item{strains2resolve}{a vector of strain names to change to isotype names.}
+\item{strains}{a vector of strain names to change to isotype names.}
 
 \item{isotype_lookup}{a tibble that contains two columns - strain, previous_name, isotype.
 This is used to change input strain names. Default option queries CeNDR isotypes}
