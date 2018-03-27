@@ -37,7 +37,8 @@ resolve_isotypes <- function(strains2resolve,
     }
 
     return( isotype )
-}
+    }
+
 
 # data = strain, trait, phenotype
 BAMF_prune <- function(data, remove_outliers = TRUE ){
