@@ -62,9 +62,20 @@ perform_mapping <- function(phenotype = NULL,
         dplyr::filter(marker %in% keepMarkers$marker)
 
     if (map_by_chrom) {
+        # need 6 different kinship matrices
+        # chrom2:x, map on one
+        # chrom1:5, map on x, etc
+        # then subtract blups from phenotype and map on chromosome that you are not accounting for relationship
+
         # I think these are two ways to correct phenotype for relatedness
         yfit <- rrBLUP::mixed.solve(y = Y$trait, K = K)
         kfit <- rrBLUP::kin.blup(data = data.frame(Y), geno = "strain", pheno = "trait", K = K)
+
+        # then get blup residuals
+        y_blup <- Y$trait - yfit$u
+        # then map outside the EMMA framework, similar to linkage mapping
+        # (−n(ln(1−r2)/2ln(10)))
+        # repeat for all chromosomes
     } else {
         # Perform mapping
         gwa_results = rrBLUP::GWAS(pheno = data.frame(Y),
