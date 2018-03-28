@@ -2,5 +2,7 @@
 
 export(cendr_dataset_release)
 export(get_db)
+export(process_phenotypes)
 export(query_vcf)
+export(resolve_isotypes)
 importFrom(dplyr,"%>%")
