@@ -33,8 +33,8 @@ resolve_isotypes <- function(...) {
         isotype <- isotype_lookup %>%
             dplyr::filter(
                 (x == strain) |
-                (x == previous_name) |
-                (x == isotype)
+                (x == isotype) |
+                (x == previous_name)
             ) %>%
             dplyr::pull(isotype) %>%
             unique()
@@ -261,7 +261,7 @@ process_phenotypes <- function(df,
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Resolve Isotypes # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
     df_isotypes_resolved <- df_non_isotypes_removed %>%
         dplyr::group_by(strain) %>%
-        dplyr::mutate(isotype = resolve_isotypes(strain, strain_isotypes_db)) %>%
+        dplyr::mutate(isotype = resolve_isotypes(strain)) %>%
         dplyr::ungroup() %>%
         tidyr::gather(trait, phenotype, -strain, -isotype) %>%
         dplyr::filter(!is.na(phenotype))
