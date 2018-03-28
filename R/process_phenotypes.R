@@ -1,43 +1,56 @@
+# extract strain, isotype dataframe from database
+generate_isotype_lookup <- function(species = "ce") {
+
+    if ( species == "ce" ) {
+        isotype_lookup <- dplyr::collect(get_db("strain")) %>%
+            dplyr::mutate(strain_names = ifelse(!is.na( previous_names ),
+                                                paste( strain, previous_names, sep = "|" ),
+                                                strain )) %>%
+            tidyr::separate_rows(strain_names, sep = "\\|") %>%
+            dplyr::select(strain, previous_name = strain_names, isotype) %>%
+            dplyr::distinct()
+    }
+
+    return( isotype_lookup )
+}
+
+
+
 #' Resolve strain names to isotypes
 #'
 #' \code{resolve_isotypes} takes a vector of strain names and converts them to CeNDR-defined isotype names
 #'
 #' @param strains a vector of strain names to change to isotype names.
-#' @param isotype_lookup a tibble that contains two columns - strain, previous_name, isotype.
-#' This is used to change input strain names. Default option queries CeNDR isotypes
 #' @return Output is a vector with isotype names
+#' @importFrom dplyr %>%
 #' @export
-resolve_isotypes <- function(strains,
-                             isotype_lookup = generate_isotype_lookup() ){
+resolve_isotypes <- function(...) {
 
-    if (any(strains %in% isotype_lookup$strain)) {
-        isotype <- dplyr::filter(isotype_lookup, strain == strains) %>%
-            dplyr::pull(isotype)
-    } else if (any(strains %in% isotype_lookup$previous_name)) {
-        isotype <- dplyr::filter(isotype_lookup, previous_name == strains) %>%
-            dplyr::pull(isotype)
-    } else {
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \n{strains} is not a strain we are familiar with, please check CeNDR.
-                           \n~ ~ ~ WARNING ~ ~ ~"))
-        isotype <- NA
-    }
-    if (length(unique(isotype)) == 1) {
-        isotype <- unique(isotype)
-    } else {
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \n{strains} resolved to two isotypes, please check CeNDR.
-                           \n~ ~ ~ WARNING ~ ~ ~"))
-        isotype <- NA
-    }
-    if (is.na(isotype)){
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \n{strains} set to NA, consider switching to a defined isotype.
-                           \n~ ~ ~ WARNING ~ ~ ~"))
-    }
+    isotype_lookup = generate_isotype_lookup()
+    strains <- unlist(list(...))
 
-    return( isotype )
-    }
+    purrr::map_chr(strains, function(x) {
+        isotype <- isotype_lookup %>%
+            dplyr::filter(
+                (x == strain) |
+                (x == previous_name) |
+                (x == isotype)
+            ) %>%
+            dplyr::pull(isotype) %>%
+            unique()
+
+        if (length(isotype) == 0) {
+          message(glue::glue("{x} is not a known strain. Isotype set to NA; Please check CeNDR"))
+        } else if (length(isotype) > 1) {
+          message(glue::glue("{x} resolves to multiple isotypes. Isotype set to NA; Please check CeNDR"))
+        }
+        if (length(isotype) != 1) {
+            isotype <- NA
+        }
+        isotype
+    })
+
+}
 
 
 # data = strain, trait, phenotype
@@ -220,6 +233,7 @@ BAMF_prune <- function(data, remove_outliers = TRUE ){
 #' If FALSE, additional columns will be output specifying if the strain phenotype is an outier.
 #' @param threshold integer value defining the threshold for outlier removal, default = 2
 #' @return Output is a dataframe with
+#' @importFrom dplyr %>%
 #' @export
 process_phenotypes <- function(df,
                                summarize_replicates = "mean",
@@ -231,22 +245,6 @@ process_phenotypes <- function(df,
         message(glue::glue("~ ~ ~ WARNING ~ ~ ~
                            \nCheck input data format, strain should be the first column.
                            \n~ ~ ~ WARNING ~ ~ ~"))
-    }
-
-    # extract strain, isotype dataframe from database
-    generate_isotype_lookup <- function(species = "ce") {
-
-        if ( species == "ce" ) {
-            isotype_lookup <- dplyr::collect(get_db("strain")) %>%
-                dplyr::mutate(strain_names = ifelse(!is.na( previous_names ),
-                                                    paste( strain, previous_names, sep = "|" ),
-                                                    strain )) %>%
-                tidyr::separate_rows(strain_names, sep = "\\|") %>%
-                dplyr::select(strain, previous_name = strain_names, isotype) %>%
-                dplyr::distinct()
-        }
-
-        return( isotype_lookup )
     }
 
     # ~ ~ ~ # resolve strain isotypes # ~ ~ ~ #
