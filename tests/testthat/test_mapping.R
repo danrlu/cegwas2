@@ -13,7 +13,7 @@ pr_phenotypes <- process_phenotypes(df = df,
 to_map = pr_phenotypes[20:240,c(1,2)]
 
 test_that("Test EMMAx mapping", {
-    gmap <- perform_mapping(phenotype = to_map, P3D = TRUE, min.MAF = 0.1)
+    gmap <- perform_mapping(phenotype = to_map, P3D = TRUE, min.MAF = 0.1, mapping_cores = 1)
 
     expect_true(min(gmap$qvalue) < 0.05)
 })
@@ -22,7 +22,7 @@ to_map1 <- pr_phenotypes[20:110,c(1,2)]
 
 test_that("Test EMMA mapping with subset of strains for speed", {
 
-    gmap <- perform_mapping(phenotype = to_map1, min.MAF = 0.1)
+    gmap <- perform_mapping(phenotype = to_map1, min.MAF = 0.1, mapping_cores = 1)
 
     expect_false(min(gmap$qvalue) < 0.05)
 })

@@ -6,7 +6,7 @@
 \usage{
 perform_mapping(phenotype = NULL, genotype = cegwas2::snps,
   kinship = cegwas2::kinship, P3D = FALSE, n.PC = 0, min.MAF = 0.05,
-  map_by_chrom = FALSE)
+  map_by_chrom = FALSE, mapping_cores = parallel::detectCores())
 }
 \arguments{
 \item{phenotype}{a data frame with columns: strain and phenotype [\strong{Default:} \code{"wormbase_gene"}]}
@@ -27,6 +27,8 @@ used in association mapping [\strong{Default:} \code{0.05}]}
 
 \item{map_by_chrom}{TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
 [\strong{Default:} \code{FALSE}]}
+
+\item{mapping_cores}{Integer, number of cores to assign to mapping}
 }
 \value{
 a dataframe with the following columns

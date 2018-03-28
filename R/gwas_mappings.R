@@ -14,6 +14,7 @@
 #' used in association mapping [\strong{Default:} \code{0.05}]
 #' @param map_by_chrom TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
 #' [\strong{Default:} \code{FALSE}]
+#' @param mapping_cores Integer, number of cores to assign to mapping
 #' @return a dataframe with the following columns
 #' \itemize{
 #'      \item \strong{CHROM} - Chromosome name
@@ -33,7 +34,8 @@ perform_mapping <- function(phenotype = NULL,
                             P3D = FALSE,
                             n.PC = 0,
                             min.MAF = 0.05,
-                            map_by_chrom = FALSE) {
+                            map_by_chrom = FALSE,
+                            mapping_cores = parallel::detectCores()) {
 
     if (any(colnames(genotype)[1:4] != c("CHROM", "POS", "REF", "ALT"))){
         stop(message(glue::glue("The genotype matrix is not formatted correctly. Please refer to documentation")))
@@ -103,7 +105,7 @@ perform_mapping <- function(phenotype = NULL,
                                    K = K,
                                    n.PC = 0,
                                    min.MAF = min.MAF,
-                                   n.core = parallel::detectCores(),
+                                   n.core = mapping_cores,
                                    P3D = P3D,
                                    plot = FALSE)
     }
