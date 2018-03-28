@@ -45,6 +45,3 @@ a dataframe with the following columns
 \description{
 \code{perform_mapping} runs association mapping on a phenotype
 }
-\examples{
-perform_mapping(phenotype = pr_phenotypes[,1:2])
-}

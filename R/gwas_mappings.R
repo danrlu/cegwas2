@@ -14,7 +14,6 @@
 #' used in association mapping [\strong{Default:} \code{0.05}]
 #' @param map_by_chrom TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
 #' [\strong{Default:} \code{FALSE}]
-#' @examples perform_mapping(phenotype = pr_phenotypes[,1:2])
 #' @return a dataframe with the following columns
 #' \itemize{
 #'      \item \strong{CHROM} - Chromosome name
