@@ -1,3 +1,5 @@
+testthat::context("tests/testthat/test_mapping.R")
+
 df <- data.table::fread(system.file("extdata",
                                     "test_phenotype.tsv",
                                     package = "cegwas2",
