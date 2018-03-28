@@ -17,27 +17,20 @@ resolve_isotypes <- function(strains,
         isotype <- dplyr::filter(isotype_lookup, previous_name == strains) %>%
             dplyr::pull(isotype)
     } else {
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \n{strains} is not a strain we are familiar with, please check CeNDR.
-                           \n~ ~ ~ WARNING ~ ~ ~"))
+        message(glue::glue("{strains} is not a strain we are familiar with, please check CeNDR."))
         isotype <- NA
     }
     if (length(unique(isotype)) == 1) {
         isotype <- unique(isotype)
     } else {
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \n{strains} resolved to two isotypes, please check CeNDR.
-                           \n~ ~ ~ WARNING ~ ~ ~"))
+        message(glue::glue("{strains} resolved to two isotypes, please check CeNDR."))
         isotype <- NA
     }
     if (is.na(isotype)){
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \n{strains} set to NA, consider switching to a defined isotype.
-                           \n~ ~ ~ WARNING ~ ~ ~"))
+        message(glue::glue("{strains} set to NA, consider switching to a defined isotype."))
     }
-
     return( isotype )
-    }
+}
 
 
 # data = strain, trait, phenotype
@@ -49,31 +42,26 @@ BAMF_prune <- function(data, remove_outliers = TRUE ){
              | ( (sixls >= 1 & ( (s6l + s5l + s4l) / numst) <= .05))
         )
     }
-
     # If the 5 innermost bins are discontinuous by more than a 1 bin gap, the
     # observation is in the fifth bin (between 7 and 10x IQR outside the
     # distribution), and the four outermost bins make up less than 5% of the
     # population, mark the observation an outlier
-
     categorize2 <- function(data) {
         with(data,
              ( (fivehs >= 1 & ( (s6h + s5h + s4h + s3h) / numst) <= .05))
              | ( (fivels >= 1 & ( (s6l + s5l + s4l + s3l) / numst) <= .05))
         )
     }
-
     # If the 4 innermost bins are discontinuous by more than a 1 bin gap, the
     # observation is in the fourth bin (between 5 and 7x IQR outside the
     # distribution), and the four outermost bins make up less than 5% of the
     # population, mark the observation an outlier
-
     categorize3 <- function(data) {
         with(data,
              ( (fourhs >= 1 & (s5h + s4h + s3h + s2h) / numst <= .05))
              | ( (fourls >= 1 & (s5l + s4l + s3l + s2l) / numst <= .05))
         )
     }
-
     napheno <- data[is.na(data$phenotype), ] %>%
         dplyr::mutate(bamfoutlier1 = NA, bamfoutlier2 = NA, bamfoutlier3 = NA)
 
@@ -232,23 +220,6 @@ process_phenotypes <- function(df,
                            \nCheck input data format, strain should be the first column.
                            \n~ ~ ~ WARNING ~ ~ ~"))
     }
-
-    # extract strain, isotype dataframe from database
-    generate_isotype_lookup <- function(species = "ce") {
-
-        if ( species == "ce" ) {
-            isotype_lookup <- dplyr::collect(get_db("strain")) %>%
-                dplyr::mutate(strain_names = ifelse(!is.na( previous_names ),
-                                                    paste( strain, previous_names, sep = "|" ),
-                                                    strain )) %>%
-                tidyr::separate_rows(strain_names, sep = "\\|") %>%
-                dplyr::select(strain, previous_name = strain_names, isotype) %>%
-                dplyr::distinct()
-        }
-
-        return( isotype_lookup )
-    }
-
     # ~ ~ ~ # resolve strain isotypes # ~ ~ ~ #
     # get strain isotypes
     strain_isotypes_db <- generate_isotype_lookup()
@@ -345,4 +316,18 @@ process_phenotypes <- function(df,
     return(processed_phenotypes_output)
 }
 
+# extract strain, isotype dataframe from database
+generate_isotype_lookup <- function(species = "ce") {
 
+    if ( species == "ce" ) {
+        isotype_lookup <- dplyr::collect(get_db("strain")) %>%
+            dplyr::mutate(strain_names = ifelse(!is.na( previous_names ),
+                                                paste( strain, previous_names, sep = "|" ),
+                                                strain )) %>%
+            tidyr::separate_rows(strain_names, sep = "\\|") %>%
+            dplyr::select(strain, previous_name = strain_names, isotype) %>%
+            dplyr::distinct()
+    }
+
+    return( isotype_lookup )
+}
