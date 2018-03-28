@@ -14,9 +14,13 @@ Imports:
     dplyr,
     tidyverse,
     data.table,
+<<<<<<< HEAD
     RSQLite,
     sommer,
     NCmisc
+=======
+    RSQLite
+>>>>>>> development
 Suggests: 
     testthat,
     covr
