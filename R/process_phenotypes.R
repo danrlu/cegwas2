@@ -216,9 +216,7 @@ process_phenotypes <- function(df,
                                threshold = 2){
 
     if ( sum(grepl(colnames(df)[1], "Strain", ignore.case = T)) == 0 ) {
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \nCheck input data format, strain should be the first column.
-                           \n~ ~ ~ WARNING ~ ~ ~"))
+        message(glue::glue("Check input data format, strain should be the first column."))
     }
     # ~ ~ ~ # resolve strain isotypes # ~ ~ ~ #
     # get strain isotypes
@@ -232,36 +230,27 @@ process_phenotypes <- function(df,
 
         strains_to_remove <- unique(non_isotype_strains$strain)
 
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \nRemoving strain(s) {strains_to_remove} because they do not fall into a defined isotype.
-                           \n~ ~ ~ WARNING ~ ~ ~"))
+        message(glue::glue("Removing strain(s) {strains_to_remove} because they do not fall into a defined isotype."))
 
         df_non_isotypes_removed <- dplyr::filter( df, !( strain %in% strains_to_remove) )
     } else {
         df_non_isotypes_removed <- df
     }
-
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Resolve Isotypes # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
-
     df_isotypes_resolved <- df_non_isotypes_removed %>%
         dplyr::group_by(strain) %>%
         dplyr::mutate(isotype = resolve_isotypes(strain, strain_isotypes_db)) %>%
         dplyr::ungroup() %>%
         tidyr::gather(trait, phenotype, -strain, -isotype) %>%
         dplyr::filter(!is.na(phenotype))
-
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Summarize Replicate Data # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
-
     df_replicates_summarized <- df_isotypes_resolved %>%
         dplyr::group_by(isotype, trait) %>% {
             if (summarize_replicates == "mean") dplyr::summarise(., phenotype = mean( phenotype, na.rm = T ) )
             else if (summarize_replicates == "median") dplyr::summarise(., phenotype = median( phenotype, na.rm = T ) )
-            else  message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                                     \nPlease choose mean or median as options for summarizeing replicate data.
-                                     \n~ ~ ~ WARNING ~ ~ ~")) } %>%
+            else  message(glue::glue("Please choose mean or median as options for summarizeing replicate data.")) } %>%
         dplyr::rename(strain = isotype) %>%
         dplyr::ungroup()
-
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Outlier Functions # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
     is_out_tukey <- function(x, k = threshold, na.rm = TRUE) {
         quar <- quantile(x, probs = c(0.25, 0.75), na.rm = na.rm)
@@ -269,56 +258,40 @@ process_phenotypes <- function(df,
 
         ( !(quar[1] - k * iqr <= x) ) | ( !(x <= quar[2] + k * iqr) )
     }
-
     is_out_z <- function(x, thres = threshold, na.rm = TRUE) {
         ( !abs(x - mean(x, na.rm = na.rm)) <= thres * sd(x, na.rm = na.rm) )
     }
-
     is_out_mad <- function(x, thres = threshold, na.rm = TRUE) {
         ( !abs(x - median(x, na.rm = na.rm)) <= thres * mad(x, na.rm = na.rm) )
     }
-
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Perform outlier removal # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
     if ( prune_method == "BAMF" ) {
-
         df_outliers <- BAMF_prune(df_replicates_summarized, remove_outliers = FALSE)
-
     } else {
-
         df_outliers <-  dplyr::ungroup(df_replicates_summarized) %>%
             dplyr::group_by(trait) %>% {
                 if (prune_method == "MAD") dplyr::transmute_if(., is.numeric, dplyr::funs( outlier = is_out_mad ) )
                 else if (prune_method == "TUKEY") dplyr::transmute_if(., is.numeric, dplyr::funs( outlier = is_out_tukey ) )
                 else if (prune_method == "Z") dplyr::transmute_if(., is.numeric, dplyr::funs( outlier = is_out_z ) )
-                else  message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                                     \nPlease choose BAMF, MAD, TUKEY, or Z as options for summarizeing replicate data.
-                                         \n~ ~ ~ WARNING ~ ~ ~")) } %>%
+                else  message(glue::glue("Please choose BAMF, MAD, TUKEY, or Z as options for summarizeing replicate data.")) } %>%
             dplyr::ungroup() %>%
             dplyr::bind_cols(., dplyr::ungroup(df_replicates_summarized)) %>%
             dplyr::select(strain, trait, phenotype, outlier)
-
     }
-
     if (remove_outliers == TRUE ) {
-
         processed_phenotypes_output <- df_outliers %>%
             dplyr::filter( !outlier ) %>%
             dplyr::select( -outlier ) %>%
             tidyr::spread( trait, phenotype)
-
     } else {
-
         processed_phenotypes_output <- df_outliers %>%
             tidyr::spread( trait, phenotype)
-
     }
-
     return(processed_phenotypes_output)
 }
 
 # extract strain, isotype dataframe from database
 generate_isotype_lookup <- function(species = "ce") {
-
     if ( species == "ce" ) {
         isotype_lookup <- dplyr::collect(get_db("strain")) %>%
             dplyr::mutate(strain_names = ifelse(!is.na( previous_names ),
@@ -328,6 +301,5 @@ generate_isotype_lookup <- function(species = "ce") {
             dplyr::select(strain, previous_name = strain_names, isotype) %>%
             dplyr::distinct()
     }
-
     return( isotype_lookup )
 }
