@@ -30,7 +30,8 @@ test_that("Test process_phenotypes output with BAMF keep outliers", {
     expect_equal(nrow(pr_phenotypes), 243)
     expect_equal(ncol(pr_phenotypes), 6)
     expect_equal(sum(is.na(pr_phenotypes)), 12)
-    expect_equal(pr_phenotypes$strain[duplicated(pr_phenotypes$strain)], c("JU2862", "LSJ1", "QG2075"))
+    expect_equal(pr_phenotypes$strain[duplicated(pr_phenotypes$strain)],
+                 c("JU2862", "LSJ1", "QG2075"))
     expect_equal(nrow(dplyr::filter(pr_phenotypes, outlier)), 3)
 })
 
@@ -47,7 +48,9 @@ test_that("Test process_phenotypes output with Z keep outliers", {
     expect_equal(nrow(pr_phenotypes), 9)
     expect_equal(ncol(pr_phenotypes), 5)
     expect_equal(sum(is.na(pr_phenotypes)), 14)
-    expect_equal(pr_phenotypes$strain, c("CB4853", "JU1400", "JU2581", "JU2862", "JU751", "LSJ1", "MY518", "NIC514", "QG2075"))
+    expect_equal(pr_phenotypes$strain,
+                 c("CB4853", "JU1400", "JU2581", "JU2862", "JU751",
+                   "LSJ1", "MY518", "NIC514", "QG2075"))
 })
 
 

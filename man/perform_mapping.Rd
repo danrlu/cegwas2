@@ -9,23 +9,19 @@ perform_mapping(phenotype = NULL, genotype = cegwas2::snps,
   map_by_chrom = FALSE)
 }
 \arguments{
-\item{phenotype}{a data frame with columns: strain and phenotype
-[\strong{Default:} \code{"wormbase_gene"}]}
+\item{phenotype}{a data frame with columns: strain and phenotype [\strong{Default:} \code{"wormbase_gene"}]}
 
-\item{genotype}{a genotype matrix in the format
+\item{genotype}{a genotype matrix in the format CHROM, POS, REF, ALT, strain1, ... , strainN
 [\strong{Default:} \code{cegwas2::snps}]}
 
-\item{kinship}{a N x N relatedness matrix in the format
-[\strong{Default:} \code{cegwas2::kinship}]}
+\item{kinship}{a N x N relatedness matrix in the format of [\strong{Default:} \code{cegwas2::kinship}]}
 
-\item{P3D}{TRUE/FALSE - TRUE refers to the EMMAx algorithm,
-FALSE refers to EMMA algorithm}
+\item{P3D}{TRUE/FALSE - TRUE refers to the EMMAx algorithm  FALSE refers to EMMA algorithm}
 
 \item{n.PC}{Integer describing the number of principal components
 of the genotype matrix to use as fixed effects, [\strong{Default:0}]}
 
-\item{map_by_chrom}{TRUE/FALSE - BLUP residual mappings
-from [\strong{Bloom, J. S. et al. 2015}]
+\item{map_by_chrom}{TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
 [\strong{Default:} \code{FALSE}]}
 
 \item{MAF}{a value ranging from 0 - 1 that determines
@@ -40,8 +36,7 @@ a dataframe with the following columns
      \item \strong{marker} - Marker name
      \item \strong{trait} - Trait name of input phenotype
      \item \strong{BF} - Bonferroni-corrected p-value threshold
-     \item \strong{log10p} - [\code{-log10}] transformation of the p-value
-     for the indicated marker
+     \item \strong{log10p} - [\code{-log10}] transformation of the p-value for the indicated marker
      \item \strong{pval} - p-value for indicated marker
      \item \strong{Zscore} - standard score for all p-values
      \item \strong{qvalue} - p-values adjusted by FDR

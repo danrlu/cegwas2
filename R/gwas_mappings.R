@@ -2,18 +2,14 @@
 #'
 #' \code{perform_mapping} runs association mapping on a phenotype
 #'
-#' @param phenotype a data frame with columns: strain and phenotype
-#' [\strong{Default:} \code{"wormbase_gene"}]
-#' @param genotype a genotype matrix in the format
+#' @param phenotype a data frame with columns: strain and phenotype [\strong{Default:} \code{"wormbase_gene"}]
+#' @param genotype a genotype matrix in the format CHROM, POS, REF, ALT, strain1, ... , strainN
 #' [\strong{Default:} \code{cegwas2::snps}]
-#' @param kinship a N x N relatedness matrix in the format
-#' [\strong{Default:} \code{cegwas2::kinship}]
-#' @param P3D TRUE/FALSE - TRUE refers to the EMMAx algorithm,
-#' FALSE refers to EMMA algorithm
+#' @param kinship a N x N relatedness matrix in the format of [\strong{Default:} \code{cegwas2::kinship}]
+#' @param P3D TRUE/FALSE - TRUE refers to the EMMAx algorithm  FALSE refers to EMMA algorithm
 #' @param n.PC Integer describing the number of principal components
 #' of the genotype matrix to use as fixed effects, [\strong{Default:0}]
-#' @param map_by_chrom TRUE/FALSE - BLUP residual mappings
-#' from [\strong{Bloom, J. S. et al. 2015}]
+#' @param map_by_chrom TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
 #' [\strong{Default:} \code{FALSE}]
 #' @param MAF a value ranging from 0 - 1 that determines
 #' the minimum minor allele frequencey a marker must have to be
@@ -26,8 +22,7 @@
 #'      \item \strong{marker} - Marker name
 #'      \item \strong{trait} - Trait name of input phenotype
 #'      \item \strong{BF} - Bonferroni-corrected p-value threshold
-#'      \item \strong{log10p} - [\code{-log10}] transformation of the p-value
-#'      for the indicated marker
+#'      \item \strong{log10p} - [\code{-log10}] transformation of the p-value for the indicated marker
 #'      \item \strong{pval} - p-value for indicated marker
 #'      \item \strong{Zscore} - standard score for all p-values
 #'      \item \strong{qvalue} - p-values adjusted by FDR
@@ -41,6 +36,14 @@ perform_mapping <- function(phenotype = NULL,
                             n.PC = 0,
                             min.MAF = 0.05,
                             map_by_chrom = FALSE) {
+
+    if (any(colnames(genotype)[1:4] != c("CHROM", "POS", "REF", "ALT"))){
+        stop(message(glue::glue("The genotype matrix is not formatted correctly. Please refer to documentation")))
+    }
+
+    if (any(colnames(kinship) != rownames(kinship))){
+        stop(message(glue::glue("The kinship matrix is not formatted correctly. Please refer to documentation")))
+    }
 
     # Clean phenotypes
     Y = na.omit(phenotype)
@@ -103,9 +106,9 @@ perform_mapping <- function(phenotype = NULL,
                                    n.PC = 0,
                                    min.MAF = min.MAF,
                                    n.core = parallel::detectCores(),
-                                   P3D = P3D)
+                                   P3D = P3D,
+                                   plot = FALSE)
     }
-
 
     # Process mapping results
     gwa_results_pr <- gwa_results %>%
