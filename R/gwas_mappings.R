@@ -2,15 +2,23 @@
 #'
 #' \code{perform_mapping} runs association mapping on a phenotype
 #'
-#' @param phenotype a data frame with columns: strain and phenotype [\strong{Default:} \code{"wormbase_gene"}]
-#' @param genotype a genotype matrix in the format [\strong{Default:} \code{cegwas2::snps}]
-#' @param kinship a N x N relatedness matrix in the format [\strong{Default:} \code{cegwas2::kinship}]
-#' @param P3D TRUE/FALSE - TRUE refers to the EMMAx algorithm, FALSE refers to EMMA algorithm
-#' @param map_by_chrom TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
+#' @param phenotype a data frame with columns: strain and phenotype
+#' [\strong{Default:} \code{"wormbase_gene"}]
+#' @param genotype a genotype matrix in the format
+#' [\strong{Default:} \code{cegwas2::snps}]
+#' @param kinship a N x N relatedness matrix in the format
+#' [\strong{Default:} \code{cegwas2::kinship}]
+#' @param P3D TRUE/FALSE - TRUE refers to the EMMAx algorithm,
+#' FALSE refers to EMMA algorithm
+#' @param n.PC Integer describing the number of principal components
+#' of the genotype matrix to use as fixed effects, [\strong{Default:0}]
+#' @param map_by_chrom TRUE/FALSE - BLUP residual mappings
+#' from [\strong{Bloom, J. S. et al. 2015}]
 #' [\strong{Default:} \code{FALSE}]
-#' @param MAF a value ranging from 0 - 1 that determines the minimum minor allele frequencey
-#' a marker must have to be used in association mapping [\strong{Default:} \code{0.05}]
-#' @examples get_db()
+#' @param MAF a value ranging from 0 - 1 that determines
+#' the minimum minor allele frequencey a marker must have to be
+#' used in association mapping [\strong{Default:} \code{0.05}]
+#' @examples perform_mapping(phenotype = pr_phenotypes[,1:2])
 #' @return a dataframe with the following columns
 #' \itemize{
 #'      \item \strong{CHROM} - Chromosome name
@@ -18,7 +26,11 @@
 #'      \item \strong{marker} - Marker name
 #'      \item \strong{trait} - Trait name of input phenotype
 #'      \item \strong{BF} - Bonferroni-corrected p-value threshold
-#'      \item \strin{log10p} - [\code{-log10}] transformation of the p-value for the indicated marker
+#'      \item \strong{log10p} - [\code{-log10}] transformation of the p-value
+#'      for the indicated marker
+#'      \item \strong{pval} - p-value for indicated marker
+#'      \item \strong{Zscore} - standard score for all p-values
+#'      \item \strong{qvalue} - p-values adjusted by FDR
 #' }
 #' @export
 
@@ -26,6 +38,7 @@ perform_mapping <- function(phenotype = NULL,
                             genotype = cegwas2::snps,
                             kinship = cegwas2::kinship,
                             P3D = FALSE,
+                            n.PC = 0,
                             min.MAF = 0.05,
                             map_by_chrom = FALSE) {
 
@@ -36,14 +49,16 @@ perform_mapping <- function(phenotype = NULL,
     # Sort kinship matrix to to be in the same order as phenotyped strains
     kinship_sorted = kinship[sort(row.names(kinship)),sort(colnames(kinship))]
     # Prune kinship matrix to only include phenotyped individuals
-    K = kinship_sorted[row.names(kinship_sorted) %in% Y$strain, colnames(kinship_sorted) %in% Y$strain]
+    K = kinship_sorted[row.names(kinship_sorted) %in% Y$strain,
+                       colnames(kinship_sorted) %in% Y$strain]
     # Sort kinship matrix to to be in the same order as phenotyped strains
     markers = genotype %>%
         tidyr::unite(marker, CHROM, POS, remove = FALSE ) %>%
-        dplyr::select(marker, CHROM, POS, everything(), -REF, -ALT)
+        dplyr::select(marker, CHROM, POS, dplyr::everything(), -REF, -ALT)
 
     markers_sorted <- data.frame(markers[,1:3],
-                                 markers[, sort(names(markers[names(markers)%in%Y$strain]))])
+                                 markers[, sort(names(
+                                     markers[names(markers)%in%Y$strain]))])
 
     # ID markers that have a MAF outside the user-defined range
     keepMarkers <- data.frame(
@@ -65,11 +80,15 @@ perform_mapping <- function(phenotype = NULL,
         # need 6 different kinship matrices
         # chrom2:x, map on one
         # chrom1:5, map on x, etc
-        # then subtract blups from phenotype and map on chromosome that you are not accounting for relationship
+        # then subtract blups from phenotype and map on
+        # chromosome that you are not accounting for relationship
 
         # I think these are two ways to correct phenotype for relatedness
         yfit <- rrBLUP::mixed.solve(y = Y$trait, K = K)
-        kfit <- rrBLUP::kin.blup(data = data.frame(Y), geno = "strain", pheno = "trait", K = K)
+        kfit <- rrBLUP::kin.blup(data = data.frame(Y),
+                                 geno = "strain",
+                                 pheno = "trait",
+                                 K = K)
 
         # then get blup residuals
         y_blup <- Y$trait - yfit$u
@@ -96,8 +115,8 @@ perform_mapping <- function(phenotype = NULL,
                       trait = colnames(Y)[2]) %>%
         dplyr::select(CHROM, POS, marker, trait, BF, log10p) %>%
         dplyr::mutate(pval = 10^-log10p) %>% # convert log10p to p
-        dplyr::mutate(Zscore = (pval - mean(pval)) / sd(pval), # calculate z-score from pvalue distribution
-                      qvalue = qvalue(pval)) # calculate q-value from pvalue distribution
+        dplyr::mutate(Zscore = (pval - mean(pval)) / sd(pval), # calculate z-score
+                      qvalue = qvalue(pval)) # calculate q-value
 
     return(gwa_results_pr)
 }
