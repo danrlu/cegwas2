@@ -21,12 +21,12 @@ perform_mapping(phenotype = NULL, genotype = cegwas2::snps,
 \item{n.PC}{Integer describing the number of principal components
 of the genotype matrix to use as fixed effects, [\strong{Default:0}]}
 
-\item{map_by_chrom}{TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
-[\strong{Default:} \code{FALSE}]}
-
-\item{MAF}{a value ranging from 0 - 1 that determines
+\item{min.MAF}{a value ranging from 0 - 1 that determines
 the minimum minor allele frequencey a marker must have to be
 used in association mapping [\strong{Default:} \code{0.05}]}
+
+\item{map_by_chrom}{TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
+[\strong{Default:} \code{FALSE}]}
 }
 \value{
 a dataframe with the following columns

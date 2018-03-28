@@ -9,11 +9,11 @@
 #' @param P3D TRUE/FALSE - TRUE refers to the EMMAx algorithm  FALSE refers to EMMA algorithm
 #' @param n.PC Integer describing the number of principal components
 #' of the genotype matrix to use as fixed effects, [\strong{Default:0}]
-#' @param map_by_chrom TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
-#' [\strong{Default:} \code{FALSE}]
-#' @param MAF a value ranging from 0 - 1 that determines
+#' @param min.MAF a value ranging from 0 - 1 that determines
 #' the minimum minor allele frequencey a marker must have to be
 #' used in association mapping [\strong{Default:} \code{0.05}]
+#' @param map_by_chrom TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
+#' [\strong{Default:} \code{FALSE}]
 #' @examples perform_mapping(phenotype = pr_phenotypes[,1:2])
 #' @return a dataframe with the following columns
 #' \itemize{
@@ -28,7 +28,6 @@
 #'      \item \strong{qvalue} - p-values adjusted by FDR
 #' }
 #' @export
-
 perform_mapping <- function(phenotype = NULL,
                             genotype = cegwas2::snps,
                             kinship = cegwas2::kinship,
