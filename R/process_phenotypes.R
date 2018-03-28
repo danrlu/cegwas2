@@ -62,31 +62,26 @@ BAMF_prune <- function(data, remove_outliers = TRUE ){
              | ( (sixls >= 1 & ( (s6l + s5l + s4l) / numst) <= .05))
         )
     }
-
     # If the 5 innermost bins are discontinuous by more than a 1 bin gap, the
     # observation is in the fifth bin (between 7 and 10x IQR outside the
     # distribution), and the four outermost bins make up less than 5% of the
     # population, mark the observation an outlier
-
     categorize2 <- function(data) {
         with(data,
              ( (fivehs >= 1 & ( (s6h + s5h + s4h + s3h) / numst) <= .05))
              | ( (fivels >= 1 & ( (s6l + s5l + s4l + s3l) / numst) <= .05))
         )
     }
-
     # If the 4 innermost bins are discontinuous by more than a 1 bin gap, the
     # observation is in the fourth bin (between 5 and 7x IQR outside the
     # distribution), and the four outermost bins make up less than 5% of the
     # population, mark the observation an outlier
-
     categorize3 <- function(data) {
         with(data,
              ( (fourhs >= 1 & (s5h + s4h + s3h + s2h) / numst <= .05))
              | ( (fourls >= 1 & (s5l + s4l + s3l + s2l) / numst <= .05))
         )
     }
-
     napheno <- data[is.na(data$phenotype), ] %>%
         dplyr::mutate(bamfoutlier1 = NA, bamfoutlier2 = NA, bamfoutlier3 = NA)
 
@@ -233,7 +228,6 @@ BAMF_prune <- function(data, remove_outliers = TRUE ){
 #' If FALSE, additional columns will be output specifying if the strain phenotype is an outier.
 #' @param threshold integer value defining the threshold for outlier removal, default = 2
 #' @return Output is a dataframe with
-#' @importFrom dplyr %>%
 #' @export
 process_phenotypes <- function(df,
                                summarize_replicates = "mean",
@@ -242,11 +236,8 @@ process_phenotypes <- function(df,
                                threshold = 2){
 
     if ( sum(grepl(colnames(df)[1], "Strain", ignore.case = T)) == 0 ) {
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \nCheck input data format, strain should be the first column.
-                           \n~ ~ ~ WARNING ~ ~ ~"))
+        message(glue::glue("Check input data format, strain should be the first column."))
     }
-
     # ~ ~ ~ # resolve strain isotypes # ~ ~ ~ #
     # get strain isotypes
     strain_isotypes_db <- generate_isotype_lookup()
@@ -259,36 +250,27 @@ process_phenotypes <- function(df,
 
         strains_to_remove <- unique(non_isotype_strains$strain)
 
-        message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                           \nRemoving strain(s) {strains_to_remove} because they do not fall into a defined isotype.
-                           \n~ ~ ~ WARNING ~ ~ ~"))
+        message(glue::glue("Removing strain(s) {strains_to_remove} because they do not fall into a defined isotype."))
 
         df_non_isotypes_removed <- dplyr::filter( df, !( strain %in% strains_to_remove) )
     } else {
         df_non_isotypes_removed <- df
     }
-
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Resolve Isotypes # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
-
     df_isotypes_resolved <- df_non_isotypes_removed %>%
         dplyr::group_by(strain) %>%
         dplyr::mutate(isotype = resolve_isotypes(strain, strain_isotypes_db)) %>%
         dplyr::ungroup() %>%
         tidyr::gather(trait, phenotype, -strain, -isotype) %>%
         dplyr::filter(!is.na(phenotype))
-
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Summarize Replicate Data # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
-
     df_replicates_summarized <- df_isotypes_resolved %>%
         dplyr::group_by(isotype, trait) %>% {
             if (summarize_replicates == "mean") dplyr::summarise(., phenotype = mean( phenotype, na.rm = T ) )
             else if (summarize_replicates == "median") dplyr::summarise(., phenotype = median( phenotype, na.rm = T ) )
-            else  message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                                     \nPlease choose mean or median as options for summarizeing replicate data.
-                                     \n~ ~ ~ WARNING ~ ~ ~")) } %>%
+            else  message(glue::glue("Please choose mean or median as options for summarizeing replicate data.")) } %>%
         dplyr::rename(strain = isotype) %>%
         dplyr::ungroup()
-
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Outlier Functions # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
     is_out_tukey <- function(x, k = threshold, na.rm = TRUE) {
         quar <- quantile(x, probs = c(0.25, 0.75), na.rm = na.rm)
@@ -296,51 +278,36 @@ process_phenotypes <- function(df,
 
         ( !(quar[1] - k * iqr <= x) ) | ( !(x <= quar[2] + k * iqr) )
     }
-
     is_out_z <- function(x, thres = threshold, na.rm = TRUE) {
         ( !abs(x - mean(x, na.rm = na.rm)) <= thres * sd(x, na.rm = na.rm) )
     }
-
     is_out_mad <- function(x, thres = threshold, na.rm = TRUE) {
         ( !abs(x - median(x, na.rm = na.rm)) <= thres * mad(x, na.rm = na.rm) )
     }
-
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Perform outlier removal # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
     if ( prune_method == "BAMF" ) {
-
         df_outliers <- BAMF_prune(df_replicates_summarized, remove_outliers = FALSE)
-
     } else {
-
         df_outliers <-  dplyr::ungroup(df_replicates_summarized) %>%
             dplyr::group_by(trait) %>% {
                 if (prune_method == "MAD") dplyr::transmute_if(., is.numeric, dplyr::funs( outlier = is_out_mad ) )
                 else if (prune_method == "TUKEY") dplyr::transmute_if(., is.numeric, dplyr::funs( outlier = is_out_tukey ) )
                 else if (prune_method == "Z") dplyr::transmute_if(., is.numeric, dplyr::funs( outlier = is_out_z ) )
-                else  message(glue::glue("~ ~ ~ WARNING ~ ~ ~
-                                     \nPlease choose BAMF, MAD, TUKEY, or Z as options for summarizeing replicate data.
-                                         \n~ ~ ~ WARNING ~ ~ ~")) } %>%
+                else  message(glue::glue("Please choose BAMF, MAD, TUKEY, or Z as options for summarizeing replicate data.")) } %>%
             dplyr::ungroup() %>%
             dplyr::bind_cols(., dplyr::ungroup(df_replicates_summarized)) %>%
             dplyr::select(strain, trait, phenotype, outlier)
-
     }
-
     if (remove_outliers == TRUE ) {
-
         processed_phenotypes_output <- df_outliers %>%
             dplyr::filter( !outlier ) %>%
             dplyr::select( -outlier ) %>%
             tidyr::spread( trait, phenotype)
-
     } else {
-
         processed_phenotypes_output <- df_outliers %>%
             tidyr::spread( trait, phenotype)
-
     }
-
     return(processed_phenotypes_output)
 }
 
-
+}
