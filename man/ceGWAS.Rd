@@ -4,12 +4,9 @@
 \name{ceGWAS}
 \alias{ceGWAS}
 \title{The central object of cegwas2}
-\format{\code{\link{R6Class}} object.}
+\format{\code{R6Class} object.}
 \usage{
 ceGWAS
-}
-\value{
-Object of \code{\link{R6Class}} with methods for communication with lightning-viz server.
 }
 \description{
 The central object of cegwas2
@@ -29,17 +26,23 @@ The central object of cegwas2
 
 \item{\code{peak_intervals}}{identified confidence intervals}
 
-\item{\code{fine_mapping}}{more details to come as we create methods
-#'@section Methods:
+\item{\code{fine_mapping}}{more details to come as we create methods}
+
+\item{\code{snvs}}{snv set}
+
+\item{\code{K}}{kinship matrix}
+}}
+
+\section{Methods}{
+
 \describe{
   \item{Documentation}{For full documentation of each method go to https://github.com/AndersenLab/cegwas2}
   \item{\code{new(phenotype)}}{This method is used to create object of this class with \code{phenotype},
   which is a two-column data frame with colnames strain and trait. Trait name can be user specified}
-
   \item{\code{set_markers(genotype_matrix)}}{This method sets genotype matrix to
   something other than the default provided by \code{cegwas2}. This will also generate a corresponding kinship matrix}
   \item{\code{run_mapping(...)}}{This method executes the \code{perform_mappng} function from \code{cegwas2}}
-  }}
-}}
+  }
+}
 
 \keyword{datasets}
