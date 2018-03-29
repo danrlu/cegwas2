@@ -11,20 +11,17 @@ pr_phenotypes <- process_phenotypes(df = df,
                                     remove_outliers = TRUE)
 
 to_map = pr_phenotypes[20:240,c(1,2)]
+gmap <- perform_mapping(phenotype = to_map, P3D = TRUE, min.MAF = 0.1, mapping_cores = 1)
 
 test_that("Test EMMAx mapping", {
-    gmap <- perform_mapping(phenotype = to_map, P3D = TRUE, min.MAF = 0.1, mapping_cores = 1)
-
     expect_true(min(gmap$qvalue) < 0.05)
 })
 
 to_map1 <- pr_phenotypes[20:110,c(1,2)]
+gmap1 <- perform_mapping(phenotype = to_map1, min.MAF = 0.1, mapping_cores = 1)
 
 test_that("Test EMMA mapping with subset of strains for speed", {
-
-    gmap <- perform_mapping(phenotype = to_map1, min.MAF = 0.1, mapping_cores = 1)
-
-    expect_false(min(gmap$qvalue) < 0.05)
+    expect_false(min(gmap1$qvalue) < 0.05)
 })
 
 bad_genotype <- cegwas2::snps[,4:ncol(cegwas2::snps)]
