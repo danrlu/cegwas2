@@ -27,11 +27,11 @@ test_that("Test EMMA mapping with subset of strains for speed", {
 bad_genotype <- cegwas2::snps[,4:ncol(cegwas2::snps)]
 
 test_that("Test SNV matrix format check ", {
-    expect_error(cegwas2::perform_mapping(phenotype = to_map1, genotype = bad_genotype))
+    expect_error(perform_mapping(phenotype = to_map1, genotype = bad_genotype))
 })
 
 bad_kinship <- cegwas2::kinship[,1:239]
 
 test_that("Test kinship matrix format check", {
-    expect_error(cegwas2::perform_mapping(phenotype = to_map1, kinship = bad_kinship))
+    expect_error(perform_mapping(phenotype = to_map1, kinship = bad_kinship))
 })

@@ -39,6 +39,11 @@ perform_mapping <- function(phenotype = NULL,
                             mapping_cores = parallel::detectCores(),
                             FDR_threshold = 0.05) {
 
+    # Vairable descriptions:
+    # Y = phenotype
+    # K = kinship matrix
+    # M = genotype matrix
+
     if (any(colnames(genotype)[1:4] != c("CHROM", "POS", "REF", "ALT"))){
         stop(message(glue::glue("The genotype matrix is not formatted correctly. Please refer to documentation")))
     }
@@ -47,23 +52,31 @@ perform_mapping <- function(phenotype = NULL,
         stop(message(glue::glue("The kinship matrix is not formatted correctly. Please refer to documentation")))
     }
 
-    # Clean phenotypes
+    #=============================#
+    # Clean Phenotypes            #
+    #=============================#
     Y = na.omit(phenotype)
     colnames(Y) <- c("strain", "trait")
 
+    #=============================#
+    # Process Kinship             #
+    #=============================#
     # Sort kinship matrix to to be in the same order as phenotyped strains
-    kinship_sorted = kinship[sort(row.names(kinship)),sort(colnames(kinship))]
+    kinship_sorted = kinship[sort(row.names(kinship)), sort(colnames(kinship))]
     # Prune kinship matrix to only include phenotyped individuals
     K = kinship_sorted[row.names(kinship_sorted) %in% Y$strain,
                        colnames(kinship_sorted) %in% Y$strain]
+
+    #=============================#
+    # Process Markers             #
+    #=============================#
     # Sort kinship matrix to to be in the same order as phenotyped strains
     markers = genotype %>%
         tidyr::unite(marker, CHROM, POS, remove = FALSE ) %>%
         dplyr::select(marker, CHROM, POS, dplyr::everything(), -REF, -ALT)
 
     markers_sorted <- data.frame(markers[,1:3],
-                                 markers[, sort(names(
-                                     markers[names(markers)%in%Y$strain]))])
+                                 markers[, sort(names(markers[names(markers) %in% Y$strain]))])
 
     # ID markers that have a MAF outside the user-defined range
     keepMarkers <- data.frame(
@@ -81,6 +94,9 @@ perform_mapping <- function(phenotype = NULL,
     M <- markers_sorted %>%
         dplyr::filter(marker %in% keepMarkers$marker)
 
+    #=============================#
+    # Perform Mapping             #
+    #=============================#
     if (map_by_chrom) {
         # need 6 different kinship matrices
         # chrom2:x, map on one
@@ -112,7 +128,9 @@ perform_mapping <- function(phenotype = NULL,
                                    plot = FALSE)
     }
 
-    # Process mapping results
+    #=============================#
+    # Process Mapping             #
+    #=============================#
     gwa_results_pr <- gwa_results %>%
         dplyr::rename(log10p = trait) %>%
         dplyr::filter(log10p != 0) %>%
@@ -124,20 +142,22 @@ perform_mapping <- function(phenotype = NULL,
                       qvalue = qvalue(pval)) %>% # calculate q-value
         dplyr::arrange(CHROM,POS)
 
-    # ~ ~ ~ ~ # Calculate FDR # ~ ~ ~ ~ #
+    #=============================#
+    # Calculate FDR               #
+    #=============================#
     q.ans <- qvalue(gwa_results_pr$pval)
-    temp <- cbind(q.ans,gwa_results_pr$log10p)
-    temp <- temp[order(temp[,1]),]
+    qv.sc <- cbind(q.ans, gwa_results_pr$log10p)
+    qv.sc <- qv.sc[order(qv.sc[,1]),]
 
-    if (temp[1,1]<FDR_threshold) {
-        temp2 <- tapply(temp[,2],temp[,1],mean)  #take mean of log10p for every unique qvalue
-        qvals <- as.numeric(rownames(temp2)) # unique q values
-        x <- which.min(abs(qvals-FDR_threshold)) # find smalles q-value
-        first <- max(1,x-2)
-        last <- min(x+2,length(qvals))
-        if ((last-first)<4) {last <- first + 3}
-        splin <- smooth.spline(x=qvals[first:last],y=temp2[first:last],df=3)
-        gwa_results_pr$fdr <- predict(splin,x=FDR_threshold)$y
+    if (qv.sc[1,1] < FDR_threshold) {
+        avg.score <- tapply(qv.sc[,2], qv.sc[,1], mean)  #take mean of log10p for every unique qvalue
+        qvals <- as.numeric(rownames(avg.score)) # unique q values
+        x <- which.min(abs(qvals - FDR_threshold)) # find smalles q-value
+        first <- max(1, x-2)
+        last <- min(x+2, length(qvals))
+        if ((last - first) < 4) {last <- first + 3}
+        splin <- smooth.spline(x=qvals[first:last], y=avg.score[first:last], df=3)
+        gwa_results_pr$fdr <- predict(splin, x=FDR_threshold)$y
     } else {
         gwa_results_pr$fdr <- NA
     }
@@ -150,30 +170,32 @@ perform_mapping <- function(phenotype = NULL,
 qvalue <- function(p) {
     smooth.df = 3
 
-    if(min(p)<0 || max(p)>1) {
+    if (min(p) < 0 || max(p) > 1) {
         print("ERROR: p-values not in valid range.")
         return(0)
     }
 
-    lambda=seq(0,0.90,0.05)
+    lambda <- seq(0, 0.90, 0.05)
     m <- length(p)
 
-    pi0 <- rep(0,length(lambda))
-    for(i in 1:length(lambda)) {pi0[i] <- mean(p >= lambda[i])/(1-lambda[i])}
+    pi0 <- rep(0, length(lambda))
+    for (i in 1:length(lambda)) {
+        pi0[i] <- mean(p >= lambda[i])/(1-lambda[i])
+    }
 
-    spi0 <- smooth.spline(lambda,pi0,df=smooth.df)
-    pi0 <- predict(spi0,x=max(lambda))$y
-    pi0 <- min(pi0,1)
+    spi0 <- smooth.spline(lambda, pi0, df=smooth.df)
+    pi0 <- predict(spi0, x=max(lambda))$y
+    pi0 <- min(pi0, 1)
 
-    if(pi0 <= 0) {
+    if (pi0 <= 0) {
         print("ERROR: The estimated pi0 <= 0. Check that you have valid p-values.")
         return(0)
     }
 
-    #The estimated q-values calculated here
+    # The estimated q-values calculated here
     u <- order(p)
 
-    # ranking function which returns number of observations less than or equal
+    # Ranking function which returns number of observations less than or equal
     qvalue.rank <- function(x) {
         idx <- sort.list(x)
 
@@ -192,8 +214,11 @@ qvalue <- function(p) {
     v <- qvalue.rank(p)
 
     qvalue <- pi0*m*p/v
-    qvalue[u[m]] <- min(qvalue[u[m]],1)
-    for(i in (m-1):1) {qvalue[u[i]] <- min(qvalue[u[i]],qvalue[u[i+1]],1)}
+    qvalue[u[m]] <- min(qvalue[u[m]], 1)
+
+    for(i in (m-1):1) {
+        qvalue[u[i]] <- min(qvalue[u[i]], qvalue[u[i+1]], 1)
+    }
 
     return(qvalue)
 }
