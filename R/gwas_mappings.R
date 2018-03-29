@@ -15,6 +15,7 @@
 #' @param map_by_chrom TRUE/FALSE - BLUP residual mappings from [\strong{Bloom, J. S. et al. 2015}]
 #' [\strong{Default:} \code{FALSE}]
 #' @param mapping_cores Integer, number of cores to assign to mapping
+#' @param FDR_threshold threshold for calculated FDR and Bonferroni, [\strong{Default:0.05}]
 #' @return a dataframe with the following columns
 #' \itemize{
 #'      \item \strong{CHROM} - Chromosome name
@@ -35,7 +36,8 @@ perform_mapping <- function(phenotype = NULL,
                             n.PC = 0,
                             min.MAF = 0.05,
                             map_by_chrom = FALSE,
-                            mapping_cores = parallel::detectCores()) {
+                            mapping_cores = parallel::detectCores(),
+                            FDR_threshold = 0.05) {
 
     if (any(colnames(genotype)[1:4] != c("CHROM", "POS", "REF", "ALT"))){
         stop(message(glue::glue("The genotype matrix is not formatted correctly. Please refer to documentation")))
@@ -114,12 +116,31 @@ perform_mapping <- function(phenotype = NULL,
     gwa_results_pr <- gwa_results %>%
         dplyr::rename(log10p = trait) %>%
         dplyr::filter(log10p != 0) %>%
-        dplyr::mutate(BF = log10(.05/n()), # set bonferroni threshold
+        dplyr::mutate(BF = -log10(FDR_threshold/n()), # set bonferroni threshold
                       trait = colnames(Y)[2]) %>%
         dplyr::select(CHROM, POS, marker, trait, BF, log10p) %>%
         dplyr::mutate(pval = 10^-log10p) %>% # convert log10p to p
         dplyr::mutate(Zscore = (pval - mean(pval)) / sd(pval), # calculate z-score
-                      qvalue = qvalue(pval)) # calculate q-value
+                      qvalue = qvalue(pval)) %>% # calculate q-value
+        dplyr::arrange(CHROM,POS)
+
+    # ~ ~ ~ ~ # Calculate FDR # ~ ~ ~ ~ #
+    q.ans <- qvalue(gwa_results_pr$pval)
+    temp <- cbind(q.ans,gwa_results_pr$log10p)
+    temp <- temp[order(temp[,1]),]
+
+    if (temp[1,1]<FDR_threshold) {
+        temp2 <- tapply(temp[,2],temp[,1],mean)  #take mean of log10p for every unique qvalue
+        qvals <- as.numeric(rownames(temp2)) # unique q values
+        x <- which.min(abs(qvals-FDR_threshold)) # find smalles q-value
+        first <- max(1,x-2)
+        last <- min(x+2,length(qvals))
+        if ((last-first)<4) {last <- first + 3}
+        splin <- smooth.spline(x=qvals[first:last],y=temp2[first:last],df=3)
+        gwa_results_pr$fdr <- predict(splin,x=FDR_threshold)$y
+    } else {
+        gwa_results_pr$fdr <- NA
+    }
 
     return(gwa_results_pr)
 }

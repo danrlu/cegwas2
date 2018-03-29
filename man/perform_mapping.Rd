@@ -6,7 +6,8 @@
 \usage{
 perform_mapping(phenotype = NULL, genotype = cegwas2::snps,
   kinship = cegwas2::kinship, P3D = FALSE, n.PC = 0, min.MAF = 0.05,
-  map_by_chrom = FALSE, mapping_cores = parallel::detectCores())
+  map_by_chrom = FALSE, mapping_cores = parallel::detectCores(),
+  FDR_threshold = 0.05)
 }
 \arguments{
 \item{phenotype}{a data frame with columns: strain and phenotype [\strong{Default:} \code{"wormbase_gene"}]}
@@ -29,6 +30,8 @@ used in association mapping [\strong{Default:} \code{0.05}]}
 [\strong{Default:} \code{FALSE}]}
 
 \item{mapping_cores}{Integer, number of cores to assign to mapping}
+
+\item{FDR_threshold}{threshold for calculated FDR and Bonferroni, [\strong{Default:0.05}]}
 }
 \value{
 a dataframe with the following columns
