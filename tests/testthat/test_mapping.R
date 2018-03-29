@@ -11,14 +11,14 @@ pr_phenotypes <- process_phenotypes(df = df,
                                     remove_outliers = TRUE)
 
 to_map = pr_phenotypes[20:240,c(1,2)]
-gmap <- perform_mapping(phenotype = to_map, P3D = TRUE, min.MAF = 0.1, mapping_cores = 1)
+blup_message <- capture.output(gmap <- perform_mapping(phenotype = to_map, P3D = TRUE, min.MAF = 0.1, mapping_cores = 1))
 
 test_that("Test EMMAx mapping", {
     expect_true(min(gmap$qvalue) < 0.05)
 })
 
 to_map1 <- pr_phenotypes[20:110,c(1,2)]
-gmap1 <- perform_mapping(phenotype = to_map1, min.MAF = 0.1, mapping_cores = 1)
+blup_message <- capture.output(gmap1 <- perform_mapping(phenotype = to_map1, min.MAF = 0.1, mapping_cores = 1))
 
 test_that("Test EMMA mapping with subset of strains for speed", {
     expect_false(min(gmap1$qvalue) < 0.05)
