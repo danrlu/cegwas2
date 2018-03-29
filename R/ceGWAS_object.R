@@ -52,9 +52,14 @@ ceGWAS <- R6::R6Class("ceGWAS",
                                                                             threshold = outlier_thresholds)
                           },
 
-                          set_markers = function(genotype_matrix) {
-                              private$snvs <- genotype_matrix
-                              private$K <- generate_kinship(private$snvs)
+                          set_markers = function(genotype_matrix = NA, kinship_matrix = NA) {
+                              self$snvs <- genotype_matrix
+                              if (is.null(kinship_matrix)) {
+                                  self$K <- generate_kinship(private$snvs)
+                              } else {
+                                  self$K <- kinship_matrix
+                              }
+
                           },
 
                           # always perform mappings on objects processed phenotypes
@@ -70,8 +75,8 @@ ceGWAS <- R6::R6Class("ceGWAS",
                                                  FDR_threshold = 0.05) {
 
                               self$mapping = perform_mapping( phenotype = self$processed_phenotype,
-                                                              genotype = private$snvs,
-                                                              kinship = private$K,
+                                                              genotype = self$snvs,
+                                                              kinship = self$K,
                                                               P3D = P3D,
                                                               n.PC = n.PC,
                                                               min.MAF = map_by_chrom,
