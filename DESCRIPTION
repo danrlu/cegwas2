@@ -14,7 +14,9 @@ Imports:
     dplyr,
     tidyverse,
     data.table,
-    RSQLite
+    RSQLite,
+    parallel,
+    rrBLUP
 Suggests: 
     testthat,
     covr
