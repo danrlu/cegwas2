@@ -16,7 +16,8 @@ Imports:
     data.table,
     RSQLite,
     parallel,
-    rrBLUP
+    rrBLUP,
+    R6
 Suggests: 
     testthat,
     covr
