@@ -46,3 +46,23 @@ code_I_want_to_not_lint <- function(x) {
 # End Exclude Linting"
 ```
 
+```
+# Example usage
+# Load example phenotype set
+df <- data.table::fread(system.file("extdata",
+                                    "test_phenotype.tsv",
+                                    package = "cegwas2",
+                                    mustWork = TRUE)) %>%
+    dplyr::select(strain, trait1)
+
+# Initialize ceGWAS R6 object
+test_trait <- ceGWAS$new(phenotype = df)
+# Set genotype and kinship matices
+test_trait$set_markers(genotype_matrix = cegwas2::snps,
+                       kinship_matrix = cegwas2::kinship)                  
+# EMMAx mapping
+test_trait$run_mapping(P3D = TRUE)
+# EMMA mapping
+test_trait$run_mapping(P3D = FALSE)
+```
+
