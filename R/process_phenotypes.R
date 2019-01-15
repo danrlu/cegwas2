@@ -2,7 +2,7 @@
 generate_isotype_lookup <- function(species = "ce") {
 
     if ( species == "ce" ) {
-        isotype_lookup <- dplyr::collect(get_db("strain")) %>%
+        isotype_lookup <- dplyr::collect(get_db("strain", renew = T)) %>%
             dplyr::mutate(strain_names = ifelse(!is.na( previous_names ),
                                                 paste( strain, previous_names, sep = "|" ),
                                                 strain )) %>%
