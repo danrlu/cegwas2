@@ -4,8 +4,8 @@
 \alias{process_phenotypes}
 \title{Process phenotypes for mapping}
 \usage{
-process_phenotypes(df, summarize_replicates = "mean", prune_method = "BAMF",
-  remove_outliers = TRUE, threshold = 2)
+process_phenotypes(df, summarize_replicates = "mean",
+  prune_method = "BAMF", remove_outliers = TRUE, threshold = 2)
 }
 \arguments{
 \item{df}{a dataframe with a strain column and columns for each trait for processing.}
