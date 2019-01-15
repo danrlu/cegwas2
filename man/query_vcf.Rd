@@ -12,6 +12,14 @@ query_vcf(..., info = c(), format = c("TGT"), impact = c("MODERATE",
 
 \item{info}{Info columns to output. If an \code{ANN} (annotation) column is available it is automatically fetched. [\strong{Default} \code{c()}]}
 
+\item{format}{Format columns to output. A \code{"GT"} or \code{"TGT"} column must be specified to retrieve genotypes.
+\itemize{
+    \item GT: uses a numeric represetnation (0=REF, 1=ALT) and outputs g1, g2, and genotype (0=REF homozygous, 1=HET, 2=ALT homozygous).
+    \item TGT: uses the base representation (ATGC) and outputs two columns: a1, a2.
+}}
+
+\item{impact}{A vector of impact levels to filter on (LOW, MODERATE, HIGH, MODIFIER). "ALL" can be used to return ALL variants. [\strong{Default} \code{c('MODERATE', 'HIGH')}]}
+
 \item{samples}{A set of samples to subset on [\strong{default:} \code{"ALL"}]}
 
 \item{long}{Return dataset in long or wide format. [\strong{Default} \code{TRUE}]}

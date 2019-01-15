@@ -5,9 +5,9 @@
 \title{Perform GWA analysis}
 \usage{
 perform_mapping(phenotype = NULL, genotype = cegwas2::snps,
-  kinship = cegwas2::kinship, P3D = FALSE, n.PC = 0, min.MAF = 0.05,
-  map_by_chrom = FALSE, mapping_cores = parallel::detectCores(),
-  FDR_threshold = 0.05)
+  kinship = cegwas2::kinship, P3D = FALSE, n.PC = 0,
+  min.MAF = 0.05, map_by_chrom = FALSE,
+  mapping_cores = parallel::detectCores(), FDR_threshold = 0.05)
 }
 \arguments{
 \item{phenotype}{a data frame with columns: strain and phenotype [\strong{Default:} \code{"wormbase_gene"}]}
