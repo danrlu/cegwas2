@@ -264,7 +264,8 @@ query_vcf <- function(...,
                     tsv <- dplyr::mutate(tsv, ANN = "")
                 }
                 tsv <- tsv %>%
-                    tidyr::unnest(ANN, .sep = ",") %>%
+                    dplyr::mutate(ANN = stringr::str_split(ANN, ",") %>%
+                    tidyr::unnest(ANN) %>%
                     {
                         if (!is.null(ann_header))
                             tidyr::separate(., ANN, into = ann_header, sep = "\\|") %>%
